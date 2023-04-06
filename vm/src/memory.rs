@@ -17,13 +17,10 @@ lazy_static::lazy_static! {
     };
 }
 
-
-
-
 pub struct ExecutableMemory {
     allocation: *mut u8,
     capacity: usize,
-    size: usize
+    size: usize,
 }
 
 #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
@@ -46,15 +43,26 @@ impl ExecutableMemory {
             let mut ptr = rusty_ptr.as_mut_ptr();
             libc::posix_memalign(&mut ptr, *PAGE_SIZE, capacity);
             rusty_ptr.assume_init();
-            libc::mprotect(ptr, capacity, libc::PROT_EXEC | libc::PROT_READ | libc::PROT_WRITE);
+            libc::mprotect(
+                ptr,
+                capacity,
+                libc::PROT_EXEC | libc::PROT_READ | libc::PROT_WRITE,
+            );
             allocation = ptr as _;
         }
 
         #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
         unsafe {
-            use windows::Win32::System::Memory::{VirtualAlloc, MEM_COMMIT, MEM_RESERVE, PAGE_EXECUTE_READWRITE};
+            use windows::Win32::System::Memory::{
+                VirtualAlloc, MEM_COMMIT, MEM_RESERVE, PAGE_EXECUTE_READWRITE,
+            };
 
-            let ptr = VirtualAlloc(None, capacity, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+            let ptr = VirtualAlloc(
+                None,
+                capacity,
+                MEM_COMMIT | MEM_RESERVE,
+                PAGE_EXECUTE_READWRITE,
+            );
             allocation = ptr as _;
         }
 
@@ -82,9 +90,13 @@ impl ExecutableMemory {
         }
     }
 
-    pub fn to_fn(&self) -> fn() -> usize {
-        let func: fn() -> usize = unsafe { std::mem::transmute(self.allocation)};
-        func
+    pub fn to_fn(&self) -> extern "C" fn(usize) -> usize {
+        let fun: extern "C" fn(usize) -> usize = unsafe { std::mem::transmute(self.allocation) };
+        fun
+    }
+
+    pub fn as_mut_ptr(&mut self) -> *mut u8 {
+        self.allocation
     }
 }
 

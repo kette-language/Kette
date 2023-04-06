@@ -1,7 +1,7 @@
 pub struct Lexer<'a> {
-    pub source: &'a str,
-    pub line: usize,
-    pub column: usize,
+    source: &'a str,
+    line: usize,
+    column: usize,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -24,13 +24,17 @@ impl<'a> Lexer<'a> {
         let index = self.source.find(|c| c != '\t' && c != ' ' && c != '\n');
 
         if let Some(index) = index {
-            self.source.chars().into_iter().take(index).for_each(|c| {
-                match c {
+            self.source
+                .chars()
+                .into_iter()
+                .take(index)
+                .for_each(|c| match c {
                     '\t' | ' ' => self.increment_column(),
                     '\n' => self.increment_line(),
-                    _ => { unreachable!() }
-                }
-            });
+                    _ => {
+                        unreachable!()
+                    }
+                });
             self.source = &self.source[index..self.source.len()]
         } else {
             self.source = ""
@@ -39,7 +43,9 @@ impl<'a> Lexer<'a> {
 
     pub fn next_word(&mut self) -> Option<Word<'a>> {
         self.skip_whitespace();
-        if self.source == "" { return None }
+        if self.source == "" {
+            return None;
+        }
         let index = self.source.find(|c| c == '\t' || c == ' ' || c == '\n');
 
         let word = if let Some(index) = index {
