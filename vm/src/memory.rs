@@ -1,9 +1,24 @@
-use std::ops::{Deref, DerefMut};
-
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-pub const PAGE_SIZE: usize = 4096;
+lazy_static::lazy_static! {
+    pub static ref PAGE_SIZE: usize = {
+        use libc::{sysconf, _SC_PAGESIZE};
+        unsafe { sysconf(_SC_PAGESIZE) as usize }
+    };
+}
+
 #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-pub const PAGE_SIZE: usize = 4096;
+lazy_static::lazy_static! {
+    pub static ref PAGE_SIZE: usize = {
+        use windows::Win32::System::SystemInformation::{SYSTEM_INFO, GetSystemInfo};
+        let mut info = SYSTEM_INFO::default();
+        let ptr = std::ptr::addr_of_mut!(info);
+        unsafe { GetSystemInfo(ptr); }
+        info.dwPageSize as usize
+    };
+}
+
+
+
 
 pub struct ExecutableMemory {
     allocation: *mut u8,
@@ -23,12 +38,12 @@ impl Drop for ExecutableMemory {
 
 impl ExecutableMemory {
     pub fn new(capacity: usize) -> Self {
-        let capacity = round_page(capacity);
+        let capacity = ceil(capacity, *PAGE_SIZE);
         let allocation: *mut u8;
         #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
         unsafe {
             let mut ptr: *mut libc::c_void = std::mem::MaybeUninit::uninit().assume_init();
-            libc::posix_memalign(&mut ptr, PAGE_SIZE, capacity);
+            libc::posix_memalign(&mut ptr, *PAGE_SIZE, capacity);
             libc::mprotect(ptr, capacity, libc::PROT_EXEC | libc::PROT_READ | libc::PROT_WRITE);
             allocation = ptr as _;
         }
@@ -71,6 +86,6 @@ impl ExecutableMemory {
     }
 }
 
-fn round_page(size: usize) -> usize {
-    (size / PAGE_SIZE + 1) * PAGE_SIZE
+fn ceil(size: usize, ceiling: usize) -> usize {
+    (size / ceiling + 1) * ceiling
 }

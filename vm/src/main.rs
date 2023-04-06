@@ -1,7 +1,8 @@
 use vm::memory::{ExecutableMemory, PAGE_SIZE};
 
 fn main() {
-    let mut mem = ExecutableMemory::new(PAGE_SIZE);
+    println!("Page Size {:?}", *PAGE_SIZE);
+    let mut mem = ExecutableMemory::new(4000);
     mem.push(0x48);
     mem.push(0xC7);
     mem.push(0xC0);
@@ -12,5 +13,5 @@ fn main() {
     mem.push(0xc3);
     let exec = mem.to_fn();
     let x = exec();
-    println!("Hello, world!, {:?}", x, );
+    println!("Hello, world!, {:?}", x);
 }
