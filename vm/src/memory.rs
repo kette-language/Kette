@@ -42,8 +42,10 @@ impl ExecutableMemory {
         let allocation: *mut u8;
         #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
         unsafe {
-            let mut ptr: *mut libc::c_void = std::mem::MaybeUninit::uninit().assume_init();
+            let mut rusty_ptr = std::mem::MaybeUninit::uninit();
+            let mut ptr = rusty_ptr.as_mut_ptr();
             libc::posix_memalign(&mut ptr, *PAGE_SIZE, capacity);
+            rusty_ptr.assume_init();
             libc::mprotect(ptr, capacity, libc::PROT_EXEC | libc::PROT_READ | libc::PROT_WRITE);
             allocation = ptr as _;
         }
