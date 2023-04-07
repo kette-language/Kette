@@ -15,9 +15,7 @@ impl Jitter {
 
     pub fn compile(&mut self) -> ExecutableMemory {
         let mut mem = ExecutableMemory::new(self.next.len());
-        unsafe {
-            std::ptr::copy(self.next.as_ptr(), mem.as_mut_ptr(), self.next.len())
-        }
+        unsafe { std::ptr::copy(self.next.as_ptr(), mem.as_mut_ptr(), self.next.len()) }
         mem
     }
 
@@ -59,13 +57,29 @@ impl Jitter {
 
     fn write_sized(&mut self, value: u64, size: Size) {
         let size = size as u8;
-        if size >= 1 { self.next.push((value >> 0) as u8) }
-        if size >= 2 { self.next.push((value >> 8) as u8) }
-        if size >= 3 { self.next.push((value >> 16) as u8) }
-        if size >= 4 { self.next.push((value >> 24) as u8) }
-        if size >= 5 { self.next.push((value >> 32) as u8) }
-        if size >= 6 { self.next.push((value >> 40) as u8) }
-        if size >= 7 { self.next.push((value >> 48) as u8) }
-        if size >= 8 { self.next.push((value >> 56) as u8) }
+        if size >= 1 {
+            self.next.push((value >> 0) as u8)
+        }
+        if size >= 2 {
+            self.next.push((value >> 8) as u8)
+        }
+        if size >= 3 {
+            self.next.push((value >> 16) as u8)
+        }
+        if size >= 4 {
+            self.next.push((value >> 24) as u8)
+        }
+        if size >= 5 {
+            self.next.push((value >> 32) as u8)
+        }
+        if size >= 6 {
+            self.next.push((value >> 40) as u8)
+        }
+        if size >= 7 {
+            self.next.push((value >> 48) as u8)
+        }
+        if size >= 8 {
+            self.next.push((value >> 56) as u8)
+        }
     }
 }

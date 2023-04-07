@@ -1,3 +1,4 @@
+use crate::architecture::x64::opcode::Opcode;
 use crate::memory::ExecutableMemory;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -45,13 +46,21 @@ pub struct MovInstruction {
 }
 
 pub struct AddInstruction {
-    src: Operand,
-    dst: Operand,
+    pub src: Operand,
+    pub dst: Operand,
 }
 
 pub struct SubInstruction {
-    src: Operand,
-    dst: Operand,
+    pub src: Operand,
+    pub dst: Operand,
+}
+
+pub struct PushInstruction {
+    pub op: Operand,
+}
+
+pub struct PopInstruction {
+    pub op: Operand,
 }
 
 pub struct RetInstruction;
@@ -62,47 +71,56 @@ impl Instruction for MovInstruction {
 
         match &self.dst {
             Operand::Register(dst) => {
-                instruction.prefix = dst.prefix;
+                let prefixes = dst.prefixes();
                 match &self.src {
                     Operand::Register(src) => {}
-                    Operand::RegisterAddress((src_reg, src_offset, src_size)) => {
-                        unimplemented!()
+                    Operand::RegisterAddress(_) => {
+                        todo!()
                     }
-                    Operand::Address((src_addr, src_offset, src_dst)) => {
-                        unimplemented!()
+                    Operand::Address(_) => {
+                        todo!()
                     }
                     Operand::Constant((value, size)) => {
                         instruction.immediate = Some((*value, *size));
-
                         if !(size == &Size::Byte4 && dst.size == Size::Byte8) && size != &dst.size {
                             panic!("sizes do not match")
                         }
                         match dst.size {
-                            Size::Byte1 => {}
-                            Size::Byte2 => {}
-                            Size::Byte3 => {
-                                panic!("invalid register size")
+                            Size::Byte1 => {
+                                instruction.prefix = prefixes[0];
+                                instruction.opcode =
+                                    (Opcode::MOV_REG_CONST_B1 | dst.id as u32, Size::Byte1)
+                            }
+                            Size::Byte2 => {
+                                instruction.prefix = prefixes[1];
+                                instruction.opcode =
+                                    (Opcode::MOV_REG_CONST_B248 | dst.id as u32, Size::Byte1)
                             }
                             Size::Byte4 => {
-                                instruction.opcode = (0xb8 | dst.id as u32, Size::Byte1);
+                                instruction.prefix = prefixes[2];
+                                instruction.opcode =
+                                    (Opcode::MOV_REG_CONST_B248 | dst.id as u32, Size::Byte1);
                             }
                             Size::Byte8 => {
+                                instruction.prefix = prefixes[3];
                                 if size == &Size::Byte8 {
-                                    instruction.opcode = (0xb8 | dst.id as u32, Size::Byte1);
+                                    instruction.opcode =
+                                        (Opcode::MOV_REG_CONST_B248 | dst.id as u32, Size::Byte1);
                                 } else {
-                                    instruction.opcode = (0xc7, Size::Byte1);
-                                    instruction.modrm = Some(encode_modrm(3, 0, dst.id));
+                                    instruction.opcode = (Opcode::MOV_REG_CONST_B8, Size::Byte1);
+                                    instruction.modrm = Some(Register::encode_modrm(3, 0, dst.id));
                                 }
                             }
+                            _ => panic!("Invalid Size"),
                         }
                     }
                 }
             }
-            Operand::RegisterAddress((dst_reg, dst_offset, dst_size)) => {
-                unimplemented!()
+            Operand::RegisterAddress(_) => {
+                todo!()
             }
-            Operand::Address((dst_addr, dst_offset, dst_size)) => {
-                unimplemented!()
+            Operand::Address(_) => {
+                todo!()
             }
             Operand::Constant(_) => {
                 panic!("Destination cannot be constant")
@@ -127,8 +145,68 @@ impl Instruction for RetInstruction {
     }
 }
 
-pub fn encode_modrm(m: u8, reg: u8, rm: u8) -> u8 {
-    m << 6 | reg << 3 | rm
+impl Instruction for PushInstruction {
+    fn build(&self) -> AssemblyInstruction {
+        let mut instruction = AssemblyInstruction::default();
+        match &self.op {
+            Operand::Register(r) => {
+                match r.sub_id {
+                    0 => instruction.prefix = None,
+                    1 => instruction.prefix = r.prefixes()[3],
+                    _ => {
+                        panic!("Invalid SubId")
+                    }
+                }
+                instruction.opcode = (Opcode::PUSH_REG | r.id as u32, Size::Byte1);
+            }
+            Operand::Address(_) => {
+                todo!()
+            }
+            Operand::RegisterAddress(_) => {
+                todo!()
+            }
+            Operand::Constant((val, size)) => match size {
+                Size::Byte1 => {
+                    instruction.opcode = (Opcode::PUSH_CONST_B1, Size::Byte1);
+                    instruction.immediate = Some((*val, Size::Byte1));
+                }
+                Size::Byte2 | Size::Byte3 | Size::Byte4 => {
+                    instruction.opcode = (Opcode::PUSH_CONST_B4, Size::Byte1);
+                    instruction.immediate = Some((*val, Size::Byte4));
+                }
+                Size::Byte8 => {
+                    panic!("invalid size")
+                }
+            },
+        };
+        instruction
+    }
+}
+
+impl Instruction for PopInstruction {
+    fn build(&self) -> AssemblyInstruction {
+        let mut instruction = AssemblyInstruction::default();
+        match &self.op {
+            Operand::Register(r) => {
+                match r.sub_id {
+                    0 => instruction.prefix = None,
+                    1 => instruction.prefix = r.prefixes()[3],
+                    _ => {
+                        panic!("Invalid SubId")
+                    }
+                }
+                instruction.opcode = (Opcode::POP_REG | r.id as u32, Size::Byte1);
+            }
+            Operand::Address(_) => {
+                todo!()
+            }
+            Operand::RegisterAddress(_) => {
+                todo!()
+            }
+            Operand::Constant(_) => panic!("Pop does not support constant"),
+        };
+        instruction
+    }
 }
 
 pub enum Operand {
@@ -139,337 +217,109 @@ pub enum Operand {
 }
 
 pub struct Register {
-    pub prefix: Option<(u32, Size)>,
-    pub size: Size,
     pub id: u8,
+    pub sub_id: u8, // rax -> 0, r8 -> 1
+    pub size: Size,
 }
 
 impl Register {
-    pub const RAX: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 0,
-    };
-    pub const RCX: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 1,
-    };
-    pub const RDX: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 2,
-    };
-    pub const RBX: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 3,
-    };
-    pub const RSP: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 4,
-    };
-    pub const RBP: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 5,
-    };
-    pub const RSI: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 6,
-    };
-    pub const RDI: Register = Register {
-        prefix: Some((0x48, Size::Byte1)),
-        size: Size::Byte8,
-        id: 7,
-    };
+    pub const fn new(id: u8, sub_id: u8, size: Size) -> Self {
+        Self { id, sub_id, size }
+    }
 
-    pub const R8: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 0,
-    };
-    pub const R9: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 1,
-    };
-    pub const R10: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 2,
-    };
-    pub const R11: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 3,
-    };
-    pub const R12: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 4,
-    };
-    pub const R13: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 5,
-    };
-    pub const R14: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 6,
-    };
-    pub const R15: Register = Register {
-        prefix: Some((0x49, Size::Byte1)),
-        size: Size::Byte8,
-        id: 7,
-    };
+    pub const RAX: Self = Self::new(0, 0, Size::Byte8);
+    pub const RCX: Self = Self::new(1, 0, Size::Byte8);
+    pub const RDX: Self = Self::new(2, 0, Size::Byte8);
+    pub const RBX: Self = Self::new(3, 0, Size::Byte8);
+    pub const RSP: Self = Self::new(4, 0, Size::Byte8);
+    pub const RBP: Self = Self::new(5, 0, Size::Byte8);
+    pub const RSI: Self = Self::new(6, 0, Size::Byte8);
+    pub const RDI: Self = Self::new(7, 0, Size::Byte8);
 
-    pub const EAX: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 0,
-    };
-    pub const ECX: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 1,
-    };
-    pub const EDX: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 2,
-    };
-    pub const EBX: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 3,
-    };
-    pub const ESP: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 4,
-    };
-    pub const EBP: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 5,
-    };
-    pub const ESI: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 6,
-    };
-    pub const EDI: Register = Register {
-        prefix: None,
-        size: Size::Byte4,
-        id: 7,
-    };
+    pub const R8: Self = Self::new(0, 1, Size::Byte8);
+    pub const R9: Self = Self::new(1, 1, Size::Byte8);
+    pub const R10: Self = Self::new(2, 1, Size::Byte8);
+    pub const R11: Self = Self::new(3, 1, Size::Byte8);
+    pub const R12: Self = Self::new(4, 1, Size::Byte8);
+    pub const R13: Self = Self::new(5, 1, Size::Byte8);
+    pub const R14: Self = Self::new(6, 1, Size::Byte8);
+    pub const R15: Self = Self::new(7, 1, Size::Byte8);
 
-    pub const R8D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 0,
-    };
-    pub const R9D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 1,
-    };
-    pub const R10D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 2,
-    };
-    pub const R11D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 3,
-    };
-    pub const R12D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 4,
-    };
-    pub const R13D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 5,
-    };
-    pub const R14D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 6,
-    };
-    pub const R15D: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte4,
-        id: 7,
-    };
+    pub const EAX: Self = Self::new(0, 0, Size::Byte4);
+    pub const ECX: Self = Self::new(1, 0, Size::Byte4);
+    pub const EDX: Self = Self::new(2, 0, Size::Byte4);
+    pub const EBX: Self = Self::new(3, 0, Size::Byte4);
+    pub const ESP: Self = Self::new(4, 0, Size::Byte4);
+    pub const EBP: Self = Self::new(5, 0, Size::Byte4);
+    pub const ESI: Self = Self::new(6, 0, Size::Byte4);
+    pub const EDI: Self = Self::new(7, 0, Size::Byte4);
 
-    pub const AX: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 0,
-    };
-    pub const CX: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 1,
-    };
-    pub const DX: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 2,
-    };
-    pub const BX: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 3,
-    };
-    pub const SP: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 4,
-    };
-    pub const BP: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 5,
-    };
-    pub const SI: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 6,
-    };
-    pub const DI: Register = Register {
-        prefix: Some((0x66, Size::Byte1)),
-        size: Size::Byte2,
-        id: 7,
-    };
+    pub const R8D: Self = Self::new(0, 1, Size::Byte4);
+    pub const R9D: Self = Self::new(1, 1, Size::Byte4);
+    pub const R10D: Self = Self::new(2, 1, Size::Byte4);
+    pub const R11D: Self = Self::new(3, 1, Size::Byte4);
+    pub const R12D: Self = Self::new(4, 1, Size::Byte4);
+    pub const R13D: Self = Self::new(5, 1, Size::Byte4);
+    pub const R14D: Self = Self::new(6, 1, Size::Byte4);
+    pub const R15D: Self = Self::new(7, 1, Size::Byte4);
 
-    pub const R8W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 0,
-    };
-    pub const R9W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 1,
-    };
-    pub const R10W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 2,
-    };
-    pub const R11W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 3,
-    };
-    pub const R12W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 4,
-    };
-    pub const R13W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 5,
-    };
-    pub const R14W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 6,
-    };
-    pub const R15W: Register = Register {
-        prefix: Some((0x66 | 41 << 8, Size::Byte2)),
-        size: Size::Byte2,
-        id: 7,
-    };
+    pub const AX: Self = Self::new(0, 0, Size::Byte2);
+    pub const CX: Self = Self::new(1, 0, Size::Byte2);
+    pub const DX: Self = Self::new(2, 0, Size::Byte2);
+    pub const BX: Self = Self::new(3, 0, Size::Byte2);
+    pub const SP: Self = Self::new(4, 0, Size::Byte2);
+    pub const BP: Self = Self::new(5, 0, Size::Byte2);
+    pub const SI: Self = Self::new(6, 0, Size::Byte2);
+    pub const DI: Self = Self::new(7, 0, Size::Byte2);
 
-    pub const AL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 0,
-    };
-    pub const CL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 1,
-    };
-    pub const DL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 2,
-    };
-    pub const BL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 3,
-    };
-    pub const SPL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 4,
-    };
-    pub const BPL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 5,
-    };
-    pub const SIL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 6,
-    };
-    pub const DIL: Register = Register {
-        prefix: None,
-        size: Size::Byte1,
-        id: 7,
-    };
+    pub const R8W: Self = Self::new(0, 1, Size::Byte2);
+    pub const R9W: Self = Self::new(1, 1, Size::Byte2);
+    pub const R10W: Self = Self::new(2, 1, Size::Byte2);
+    pub const R11W: Self = Self::new(3, 1, Size::Byte2);
+    pub const R12W: Self = Self::new(4, 1, Size::Byte2);
+    pub const R13W: Self = Self::new(5, 1, Size::Byte2);
+    pub const R14W: Self = Self::new(6, 1, Size::Byte2);
+    pub const R15W: Self = Self::new(7, 1, Size::Byte2);
 
-    pub const R8B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 0,
-    };
-    pub const R9B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 1,
-    };
-    pub const R10B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 2,
-    };
-    pub const R11B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 3,
-    };
-    pub const R12B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 4,
-    };
-    pub const R13B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 5,
-    };
-    pub const R14B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 6,
-    };
-    pub const R15B: Register = Register {
-        prefix: Some((0x41, Size::Byte1)),
-        size: Size::Byte2,
-        id: 7,
-    };
+    pub const AL: Self = Self::new(0, 0, Size::Byte1);
+    pub const CL: Self = Self::new(1, 0, Size::Byte1);
+    pub const DL: Self = Self::new(2, 0, Size::Byte1);
+    pub const BL: Self = Self::new(3, 0, Size::Byte1);
+    pub const SPL: Self = Self::new(4, 0, Size::Byte1);
+    pub const BPL: Self = Self::new(5, 0, Size::Byte1);
+    pub const SIL: Self = Self::new(6, 0, Size::Byte1);
+    pub const DIL: Self = Self::new(7, 0, Size::Byte1);
+
+    pub const R8B: Self = Self::new(0, 1, Size::Byte1);
+    pub const R9B: Self = Self::new(1, 1, Size::Byte1);
+    pub const R10B: Self = Self::new(2, 1, Size::Byte1);
+    pub const R11B: Self = Self::new(3, 1, Size::Byte1);
+    pub const R12B: Self = Self::new(4, 1, Size::Byte1);
+    pub const R13B: Self = Self::new(5, 1, Size::Byte1);
+    pub const R14B: Self = Self::new(6, 1, Size::Byte1);
+    pub const R15B: Self = Self::new(7, 1, Size::Byte1);
+
+    pub fn prefixes(&self) -> [Option<(u32, Size)>; 4] {
+        match self.sub_id {
+            0 => [
+                None,
+                Some((0x66, Size::Byte1)),
+                None,
+                Some((0x48, Size::Byte1)),
+            ],
+            1 => [
+                Some((0x41, Size::Byte1)),
+                Some((0x66 | 41 << 8, Size::Byte2)),
+                Some((0x41, Size::Byte1)),
+                Some((0x49, Size::Byte1)),
+            ],
+            _ => {
+                panic!("Invalid SubId")
+            }
+        }
+    }
+
+    pub fn encode_modrm(m: u8, reg: u8, rm: u8) -> u8 {
+        m << 6 | reg << 3 | rm
+    }
 }

@@ -1,4 +1,7 @@
-use vm::architecture::x64::instruction::{encode_modrm, Instruction, MovInstruction, Operand, Register, RetInstruction, Size};
+use vm::architecture::x64::instruction::{
+    Instruction, MovInstruction, Operand, PopInstruction, PushInstruction, Register,
+    RetInstruction, Size,
+};
 
 use vm::context::Context;
 use vm::jit::Jitter;
@@ -13,14 +16,14 @@ fn main() {
 
     let mut jit = Jitter::new();
 
-    let instr1 = MovInstruction {
-        src: Operand::Constant((666, Size::Byte4)),
-        dst: Operand::Register(Register::RAX),
-    };
-    let instr2 = RetInstruction {};
+    jit.write(PushInstruction {
+        op: Operand::Constant((333, Size::Byte4)),
+    });
+    jit.write(PopInstruction {
+        op: Operand::Register(Register::RAX),
+    });
+    jit.write(RetInstruction);
 
-    jit.write(instr1);
-    jit.write(instr2);
     let exec_raw = jit.compile();
     let exec = exec_raw.to_fn();
 
