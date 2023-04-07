@@ -73,7 +73,10 @@ impl Instruction for MovInstruction {
             Operand::Register(dst) => {
                 let prefixes = dst.prefixes();
                 match &self.src {
-                    Operand::Register(src) => {}
+                    Operand::Register(src) => {
+                        instruction.modrm = Some(Register::encode_modrm(11, src.id, dst.id));
+                        instruction.opcode = (Opcode::MOV_REG_REG, Size::Byte1);
+                    }
                     Operand::RegisterAddress(_) => {
                         todo!()
                     }

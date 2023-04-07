@@ -20,13 +20,22 @@ fn main() {
         op: Operand::Constant((333, Size::Byte4)),
     });
     jit.write(PopInstruction {
+        op: Operand::Register(Register::RCX),
+    });
+    jit.write(MovInstruction {
+        src: Operand::Register(Register::RCX),
+        dst: Operand::Register(Register::RBX),
+    });
+    jit.write(PushInstruction {
+        op: Operand::Register(Register::RBX),
+    });
+    jit.write(PopInstruction {
         op: Operand::Register(Register::RAX),
     });
     jit.write(RetInstruction);
 
     let exec_raw = jit.compile();
     let exec = exec_raw.to_fn();
-
     let value = exec(0);
     println!("value: {:?}", value);
 
