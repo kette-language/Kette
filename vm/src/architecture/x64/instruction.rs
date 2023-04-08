@@ -11,8 +11,21 @@ pub enum Size {
     Byte8 = 8,
 }
 
+impl Size {
+    pub fn to_string(&self) -> String {
+        match self {
+            Size::Byte1 => "byte",
+            Size::Byte2 => "word",
+            Size::Byte3 => "Byte3",
+            Size::Byte4 => "dword",
+            Size::Byte8 => "qword",
+        }.to_owned()
+    }
+}
+
 pub trait Instruction {
     fn build(&self) -> AssemblyInstruction;
+    fn to_string(&self) -> String;
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -132,6 +145,28 @@ impl Instruction for MovInstruction {
 
         instruction
     }
+
+    fn to_string(&self) -> String {
+        let mut result = String::from("mov ");
+        match &self.dst {
+            Operand::Register(r) => {
+                result.push_str(&r.to_string())
+            }
+            Operand::RegisterAddress(_) => {},
+            Operand::Address(_) => {},
+            Operand::Constant(_) => panic!("Destination cannot be constant")
+        }
+        result.push_str(", ");
+        match &self.src {
+            Operand::Register(r) => {
+                result.push_str(&r.to_string())
+            }
+            Operand::RegisterAddress(_) => {},
+            Operand::Address(_) => {},
+            Operand::Constant(_) => panic!("Destination cannot be constant")
+        }
+        result
+    }
 }
 
 impl Instruction for RetInstruction {
@@ -145,6 +180,10 @@ impl Instruction for RetInstruction {
             displacement: None,
             immediate: None,
         }
+    }
+
+    fn to_string(&self) -> String {
+        String::from("ret")
     }
 }
 
@@ -184,6 +223,23 @@ impl Instruction for PushInstruction {
         };
         instruction
     }
+
+    fn to_string(&self) -> String {
+        let mut result = String::from("push ");
+        match &self.op {
+            Operand::Register(r) => {
+                result.push_str(&r.to_string());
+            }
+            Operand::RegisterAddress(_) => {},
+            Operand::Address(_) => {},
+            Operand::Constant((val, size)) => {
+                result.push_str(&val.to_string());
+                result.push_str(" ; ");
+                result.push_str(&size.to_string());
+            }
+        }
+        result
+    }
 }
 
 impl Instruction for PopInstruction {
@@ -209,6 +265,19 @@ impl Instruction for PopInstruction {
             Operand::Constant(_) => panic!("Pop does not support constant"),
         };
         instruction
+    }
+
+    fn to_string(&self) -> String {
+        let mut result = String::from("pop ");
+        match &self.op {
+            Operand::Register(r) => {
+                result.push_str(&r.to_string());
+            }
+            Operand::RegisterAddress(_) => {},
+            Operand::Address(_) => {},
+            Operand::Constant(_) => panic!("Pop does not support constant"),
+        }
+        result
     }
 }
 
@@ -270,6 +339,28 @@ impl Instruction for AddInstruction {
         };
         instruction
     }
+
+    fn to_string(&self) -> String {
+        let mut result = String::from("add ");
+        match &self.dst {
+            Operand::Register(r) => {
+                result.push_str(&r.to_string())
+            }
+            Operand::RegisterAddress(_) => {},
+            Operand::Address(_) => {},
+            Operand::Constant(_) => panic!("Destination cannot be constant")
+        }
+        result.push_str(", ");
+        match &self.src {
+            Operand::Register(r) => {
+                result.push_str(&r.to_string())
+            }
+            Operand::RegisterAddress(_) => {},
+            Operand::Address(_) => {},
+            Operand::Constant(_) => panic!("Destination cannot be constant")
+        }
+        result
+    }
 }
 
 pub enum Operand {
@@ -281,7 +372,8 @@ pub enum Operand {
 
 pub struct Register {
     pub id: u8,
-    pub sub_id: u8, // rax -> 0, r8 -> 1
+    pub sub_id: u8,
+    // rax -> 0, r8 -> 1
     pub size: Size,
 }
 
@@ -384,5 +476,111 @@ impl Register {
 
     pub fn encode_modrm(m: u8, reg: u8, rm: u8) -> u8 {
         m << 6 | reg << 3 | rm
+    }
+
+    pub fn to_string(&self) -> String {
+        match self.size {
+            Size::Byte8 => match self.sub_id {
+                0 => match self.id {
+                    0 => "RAX",
+                    1 => "RCX",
+                    2 => "RDX",
+                    3 => "RBX",
+                    4 => "RSP",
+                    5 => "RBP",
+                    6 => "RSI",
+                    7 => "RDI",
+                    _ => panic!("Invalid Id"),
+                }
+                1 => match self.id {
+                    0 => "R8",
+                    1 => "R9",
+                    2 => "R10",
+                    3 => "R11",
+                    4 => "R12",
+                    5 => "R13",
+                    6 => "R14",
+                    7 => "R15",
+                    _ => panic!("Invalid Id"),
+                }
+                _ => panic!("Invalid SubId"),
+            }
+            Size::Byte4 => match self.sub_id {
+                0 => match self.id {
+                    0 => "EAX",
+                    1 => "ECX",
+                    2 => "EDX",
+                    3 => "EBX",
+                    4 => "ESP",
+                    5 => "EBP",
+                    6 => "ESI",
+                    7 => "EDI",
+                    _ => panic!("Invalid Id"),
+                }
+                1 => match self.id {
+                    0 => "R8D",
+                    1 => "R9D",
+                    2 => "R10D",
+                    3 => "R11D",
+                    4 => "R12D",
+                    5 => "R13D",
+                    6 => "R14D",
+                    7 => "R15D",
+                    _ => panic!("Invalid Id"),
+                }
+                _ => panic!("Invalid SubId"),
+            }
+            Size::Byte2 => match self.sub_id {
+                0 => match self.id {
+                    0 => "AX",
+                    1 => "CX",
+                    2 => "DX",
+                    3 => "BX",
+                    4 => "SP",
+                    5 => "BP",
+                    6 => "SI",
+                    7 => "DI",
+                    _ => panic!("Invalid Id"),
+                }
+                1 => match self.id {
+                    0 => "R8W",
+                    1 => "R9W",
+                    2 => "R10W",
+                    3 => "R11W",
+                    4 => "R12W",
+                    5 => "R13W",
+                    6 => "R14W",
+                    7 => "R15W",
+                    _ => panic!("Invalid Id"),
+                }
+                _ => panic!("Invalid SubId"),
+            }
+            Size::Byte1 => match self.sub_id {
+                0 => match self.id {
+                    0 => "AL",
+                    1 => "CL",
+                    2 => "DL",
+                    3 => "BL",
+                    4 => "SPL",
+                    5 => "BPL",
+                    6 => "SIL",
+                    7 => "DIL",
+                    _ => panic!("Invalid Id"),
+                }
+                1 => match self.id {
+                    0 => "R8B",
+                    1 => "R9B",
+                    2 => "R10B",
+                    3 => "R11B",
+                    4 => "R12B",
+                    5 => "R13B",
+                    6 => "R14B",
+                    7 => "R15B",
+                    _ => panic!("Invalid Id"),
+                }
+                _ => panic!("Invalid SubId"),
+            }
+            _ => panic!("invalid Size")
+        }.to_string()
     }
 }

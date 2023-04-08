@@ -57,6 +57,11 @@ impl Context {
                 let cfg = self.cfg.read().unwrap();
                 jitter.compile_cfg(&cfg, root);
             }
+
+            println!("Instructions:");
+            for stringy in &jitter.instructions {
+                println!("{}", stringy)
+            }
             println!("opcodes: {:02X?}", jitter.next);
             jitter.compile()
         };

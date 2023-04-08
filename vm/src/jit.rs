@@ -4,12 +4,14 @@ use crate::cfg::{CFG, CFGNode, CFGNodeId};
 use crate::memory::{ExecutableMemory, PAGE_SIZE};
 
 pub struct Jitter {
+    pub instructions: Vec<String>,
     pub next: Vec<u8>,
 }
 
 impl Jitter {
     pub fn new() -> Self {
         Self {
+            instructions: vec![],
             next: Vec::with_capacity(*PAGE_SIZE),
         }
     }
@@ -105,6 +107,7 @@ impl Jitter {
     }
 
     pub fn write(&mut self, instr: impl Instruction) {
+        self.instructions.push(instr.to_string());
         let instruction = instr.build();
         self.write_instruction(instruction);
     }
