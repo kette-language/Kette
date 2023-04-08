@@ -1,5 +1,6 @@
-use crate::architecture::x64::instruction::{AssemblyInstruction, Instruction, Size};
-use crate::builtin::Number;
+use crate::architecture::x64::instruction::{AddInstruction, AssemblyInstruction, Instruction, Operand, PopInstruction, PushInstruction, Register, RetInstruction, Size};
+use crate::builtin::{Builtin, Number};
+use crate::cfg::{CFG, CFGNode, CFGNodeId};
 use crate::memory::{ExecutableMemory, PAGE_SIZE};
 
 pub struct Jitter {
@@ -10,6 +11,90 @@ impl Jitter {
     pub fn new() -> Self {
         Self {
             next: Vec::with_capacity(*PAGE_SIZE),
+        }
+    }
+
+    pub fn compile_cfg(&mut self, cfg: &CFG, start: &CFGNodeId) {
+        self.next = Vec::new();
+        self.traverse_cfg(cfg, start);
+        self.write(RetInstruction)
+    }
+
+    pub fn traverse_cfg(&mut self, cfg: &CFG, node: &CFGNodeId) {
+        let next = cfg.nodes.get(node).unwrap();
+        match next {
+            CFGNode::Global(content) => {
+                for node in content {
+                    self.traverse_cfg(cfg, node);
+                }
+            }
+            CFGNode::Quotation(_) => { todo!() }
+            CFGNode::Function { .. } => { todo!() }
+            CFGNode::QuotationCall => { todo!() }
+            CFGNode::FunctionCall(_) => { todo!() }
+            CFGNode::Builtin(builtin) => {
+                match builtin {
+                    Builtin::Number(num) => {
+                        match num {
+                            Number::Uint(num) => {
+                                let num = *num;
+                                let size = if let Ok(_) = u8::try_from(num) {
+                                    Size::Byte1
+                                } else if let Ok(_) = u32::try_from(num) {
+                                    Size::Byte4
+                                } else {
+                                    Size::Byte8
+                                };
+                                self.write(PushInstruction {
+                                    op: Operand::Constant((num, size))
+                                });
+                            }
+                            Number::Int(num) => {
+                                let num = *num;
+                                let size = if let Ok(_) = i8::try_from(num) {
+                                    Size::Byte1
+                                } else if let Ok(_) = i32::try_from(num) {
+                                    Size::Byte4
+                                } else {
+                                    Size::Byte8
+                                };
+                                self.write(PushInstruction {
+                                    op: Operand::Constant((num as u64, size))
+                                });
+                            }
+                            Number::Float(_) => { todo!() }
+                            _ => unimplemented!()
+                        }
+                    }
+                    Builtin::Add => {
+                        self.write(PopInstruction {
+                            op: Operand::Register(Register::RCX)
+                        });
+                        self.write(PopInstruction {
+                            op: Operand::Register(Register::RAX)
+                        });
+                        self.write(AddInstruction {
+                            src: Operand::Register(Register::RCX),
+                            dst: Operand::Register(Register::RAX),
+                        });
+                        self.write(PushInstruction {
+                            op: Operand::Register(Register::RAX),
+                        })
+                    }
+                    Builtin::Sub => { todo!() }
+                    Builtin::Mul => { todo!() }
+                    Builtin::Div => { todo!() }
+                    Builtin::DotPrint => { todo!() }
+                    Builtin::Drop => {
+                        self.write(PopInstruction {
+                            op: Operand::Register(Register::RAX)
+                        });
+                    }
+                }
+            }
+            CFGNode::YetUnknown(_) => { todo!() }
+            CFGNode::Placeholder => { todo!() }
+            CFGNode::Other(_) => { todo!() }
         }
     }
 

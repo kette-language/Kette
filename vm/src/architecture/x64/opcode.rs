@@ -11,4 +11,6 @@ impl Opcode {
     pub const PUSH_CONST_B4: u32 = 0x68;
 
     pub const POP_REG: u32 = 0x58;
+
+    pub const ADD_REG_REG_B8: u32 = 0x01;
 }

@@ -1,32 +1,20 @@
-use crate::lexer::Word;
+use crate::lexer::{Lexer, Word};
 
+#[derive(Debug)]
 pub enum Number {
     Uint(u64),
     Int(i64),
     Ratio(i64, i64),
     Float(f64),
-    Uint32(u32),
-    Int32(i32),
-    Ratio32(i32, i32),
-    Float32(f32),
 }
 
 impl Number {
     pub fn parse(word: &str) -> Option<Self> {
-        if let Ok(n) = word.parse::<u32>() {
-            return Some(Number::Uint32(n));
-        }
         if let Ok(n) = word.parse::<u64>() {
             return Some(Number::Uint(n));
         }
-        if let Ok(n) = word.parse::<i32>() {
-            return Some(Number::Int32(n));
-        }
         if let Ok(n) = word.parse::<i64>() {
             return Some(Number::Int(n));
-        }
-        if let Ok(n) = word.parse::<f32>() {
-            return Some(Number::Float32(n));
         }
         if let Ok(n) = word.parse::<f64>() {
             return Some(Number::Float(n));
@@ -35,6 +23,7 @@ impl Number {
     }
 }
 
+#[derive(Debug)]
 pub enum Builtin {
     Number(Number),
     Add,
@@ -42,6 +31,7 @@ pub enum Builtin {
     Mul,
     Div,
     DotPrint,
+    Drop,
 }
 
 impl Builtin {
@@ -51,6 +41,8 @@ impl Builtin {
             "-" => Some(Builtin::Sub),
             "*" => Some(Builtin::Mul),
             "/" => Some(Builtin::Div),
+            "." => Some(Builtin::DotPrint),
+            "drop" => Some(Builtin::Drop),
             _ => None,
         };
         if builtin.is_some() {

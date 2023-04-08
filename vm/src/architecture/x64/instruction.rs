@@ -212,6 +212,66 @@ impl Instruction for PopInstruction {
     }
 }
 
+impl Instruction for AddInstruction {
+    fn build(&self) -> AssemblyInstruction {
+        let mut instruction = AssemblyInstruction::default();
+        match &self.dst {
+            Operand::Register(dst) => {
+                let prefixes = dst.prefixes();
+                match &self.src {
+                    Operand::Register(src) => {
+                        if dst.size != src.size {
+                            panic!("sizes do not match");
+                        }
+                        match dst.size {
+                            Size::Byte1 => {}
+                            Size::Byte2 => {}
+                            Size::Byte4 => {}
+                            Size::Byte8 => {
+                                instruction.opcode = (Opcode::ADD_REG_REG_B8, Size::Byte1);
+                                match dst.sub_id {
+                                    0 => match src.sub_id {
+                                        0 => instruction.prefix = Some((0x48, Size::Byte1)),
+                                        1 => instruction.prefix = Some((0x4c, Size::Byte1)),
+                                        _ => panic!("invalid SubId"),
+                                    }
+                                    1 => match src.sub_id {
+                                        0 => instruction.prefix = Some((0x49, Size::Byte1)),
+                                        1 => instruction.prefix = Some((0x4d, Size::Byte1)),
+                                        _ => panic!("invalid SubId"),
+                                    }
+                                    _ => panic!("invalid SubId"),
+                                }
+                                instruction.modrm = Some(Register::encode_modrm(11, src.id, dst.id));
+                            }
+                            _ => panic!("invalid size"),
+                        }
+                    }
+                    Operand::RegisterAddress(_) => {
+                        todo!()
+                    }
+                    Operand::Address(_) => {
+                        todo!()
+                    }
+                    Operand::Constant(_) => {
+                        todo!()
+                    }
+                }
+            }
+            Operand::RegisterAddress(_) => {
+                todo!()
+            }
+            Operand::Address(_) => {
+                todo!()
+            }
+            Operand::Constant(_) => {
+                panic!("Destination cannot be constant")
+            }
+        };
+        instruction
+    }
+}
+
 pub enum Operand {
     Register(Register),
     RegisterAddress((Register, i32, Size)),
