@@ -33,6 +33,16 @@ impl Drop for ExecutableMemory {
     }
 }
 
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+impl Drop for ExecutableMemory {
+    fn drop(&mut self) {
+        use libc::free;
+        unsafe {
+            free(self.allocation as _)
+        }
+    }
+}
+
 impl ExecutableMemory {
     pub fn new(capacity: usize) -> Self {
         let capacity = ceil(capacity, *PAGE_SIZE);

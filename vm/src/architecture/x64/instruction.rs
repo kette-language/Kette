@@ -1,5 +1,4 @@
 use crate::architecture::x64::opcode::Opcode;
-use crate::memory::ExecutableMemory;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(u8)]

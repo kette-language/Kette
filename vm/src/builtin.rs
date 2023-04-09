@@ -1,4 +1,5 @@
 use crate::lexer::{Lexer, Word};
+use crate::symbol::{SymbolId, SymbolKind, SymbolStorage};
 
 #[derive(Debug)]
 pub enum Number {
@@ -52,5 +53,28 @@ impl Builtin {
             return Some(Builtin::Number(number));
         }
         return None;
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Builtin::Number(num) => {
+                return match num {
+                    Number::Uint(val) => val.to_string(),
+                    Number::Int(val) => val.to_string(),
+                    Number::Ratio(a, b) => format!("{}/{}", a.to_string(), b.to_string()),
+                    Number::Float(val) => val.to_string(),
+                }
+            }
+            Builtin::Add => "+",
+            Builtin::Sub => "-",
+            Builtin::Mul => "*",
+            Builtin::Div => "/",
+            Builtin::DotPrint => ".",
+            Builtin::Drop => "drop",
+        }.to_string()
+    }
+
+    pub fn add_symbol(self, symbols: &mut SymbolStorage) -> SymbolId {
+        symbols.insert_or_get(self.to_string(), self.to_string(), SymbolKind::Builtin(self))
     }
 }
