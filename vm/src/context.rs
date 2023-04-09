@@ -3,13 +3,14 @@ use crate::lexer::{Lexer, Word};
 use crate::symbol::{Symbol, SymbolId, SymbolKind, SymbolStorage};
 use std::collections::{HashMap, LinkedList};
 use std::sync::{Arc, Mutex, RwLock};
-use crate::cfg::{CFG, CFGNodeId, PreCFGNode};
+use crate::jit::compiler::Compiler;
+use crate::trees::{CFG, CFGNodeId, InsertCFGNode};
 use crate::sources::{Entry, Source, SourceId, Sources, SourceSource};
 
 pub struct Context {
     symbols: Arc<RwLock<SymbolStorage>>,
     sources: Arc<RwLock<Sources>>,
-    // pub jitter: Arc<RwLock<Jitter>>,
+    compiler: Arc<RwLock<Compiler>>,
     cfg: Arc<RwLock<CFG>>,
     cfg_stack: LinkedList<CFGNodeId>,
 }
@@ -20,10 +21,11 @@ impl Context {
         let sources = Default::default();
         let cfg = Arc::new(RwLock::new(CFG::new()));
         let cfg_stack = LinkedList::new();
+        let compiler = Arc::new(RwLock::new(Compiler::new()));
         let mut new = Self {
             symbols,
             sources,
-            // jitter: Arc::new(RwLock::new(Jitter::new())),
+            compiler,
             cfg,
             cfg_stack,
         };
@@ -50,12 +52,28 @@ impl Context {
         while let Some(word) = lexer.next_word() {
             self.read_word(&mut lexer, word);
         }
+        {
+            let mut cfg = self.cfg.write().unwrap();
+            let mut buffer = String::new();
+            cfg.debug_traverse(&self.symbols.read().unwrap(), &root_id, &mut buffer, 0);
+            println!("{}", buffer);
+            cfg.lower(self.symbols.clone(), &root_id);
+            let mut buffer = String::new();
+            cfg.debug_traverse(&self.symbols.read().unwrap(), &root_id, &mut buffer, 0);
+            println!("{}", buffer);
+        }
 
-        let cfg = self.cfg.read().unwrap();
-        let symbols = self.symbols.read().unwrap();
-        let mut buffer = String::new();
-        cfg.debug_traverse(&symbols, &root_id, &mut buffer, 0);
-        println!("{}", buffer);
+        let (id, compilation) = {
+            let mut compiler = self.compiler.write().unwrap();
+            let tree = self.cfg.read().unwrap();
+            let (id, compilation) = compiler.compile(&tree, self.symbols.clone(), root_id);
+            (id, compilation)
+        };
+        println!("{}", compilation.to_string());
+        println!("opcodes: {:02X?}", compilation.opcodes);
+        let fun = compilation.memory.to_fn();
+        let res = fun(0);
+        println!("result: {}", res);
         Ok(())
     }
 
@@ -66,7 +84,7 @@ impl Context {
                 let node_id = self.cfg_stack.back().unwrap();
                 {
                     let mut cfg = self.cfg.write().unwrap();
-                    cfg.insert(node_id, PreCFGNode::Symbol(id));
+                    cfg.insert(node_id, InsertCFGNode::Symbol(id));
                 }
                 match symbol.kind {
                     SymbolKind::ReaderMacro => { todo!() }
@@ -85,7 +103,7 @@ impl Context {
 
             let node_id = self.cfg_stack.back().unwrap();
             let mut cfg = self.cfg.write().unwrap();
-            cfg.insert(node_id, PreCFGNode::Symbol(id));
+            cfg.insert(node_id, InsertCFGNode::Symbol(id));
         } else if word.data.starts_with("\"") {
             todo!("implement Strings");
         } else if word.data == "[" {

@@ -1,17 +1,11 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use crate::builtin::Builtin;
-use crate::symbol::{SymbolId, SymbolStorage};
+use crate::builtin::{Builtin, Number};
+use crate::symbol::{StackEffect, SymbolId, SymbolStorage};
 
 #[derive(Debug)]
-pub struct StackEffect {
-    pub inputs: Vec<String>,
-    pub outputs: Vec<String>,
-}
-
-#[derive(Debug)]
-pub enum PreCFGNode {
+pub enum InsertCFGNode {
     Quotation(Vec<SymbolId>),
     Symbol(SymbolId),
     Unknown(SymbolId),
@@ -43,6 +37,8 @@ pub enum CFGNode {
         symbol: SymbolId,
         body: CFGNodeId,
     },
+    Number(Number),
+    Builtin(Builtin),
     Symbol(SymbolId),
     Unknown(SymbolId),
 }
@@ -51,7 +47,7 @@ pub enum CFGNode {
 pub struct CFG {
     roots: Vec<CFGNodeId>,
     mappings: HashMap<SymbolId, CFGNodeId, ahash::RandomState>,
-    nodes: HashMap<CFGNodeId, CFGNode>,
+    pub(super) nodes: HashMap<CFGNodeId, CFGNode>,
     next_id: CFGNodeId,
 }
 
@@ -65,15 +61,15 @@ impl CFG {
         }
     }
 
-    pub fn insert(&mut self, scope: &CFGNodeId, node: PreCFGNode) -> CFGNodeId {
+    pub fn insert(&mut self, scope: &CFGNodeId, node: InsertCFGNode) -> CFGNodeId {
         let node = match node {
-            PreCFGNode::Quotation(_quote) => {
+            InsertCFGNode::Quotation(_quote) => {
                 todo!()
             }
-            PreCFGNode::Symbol(id) => {
+            InsertCFGNode::Symbol(id) => {
                 CFGNode::Symbol(id)
             }
-            PreCFGNode::Unknown(id) => {
+            InsertCFGNode::Unknown(id) => {
                 CFGNode::Unknown(id)
             }
         };
@@ -101,6 +97,10 @@ impl CFG {
         (root_id, scope_id)
     }
 
+    pub fn get(&self, id: &CFGNodeId) -> &CFGNode {
+        self.nodes.get(id).unwrap()
+    }
+
     fn next_id(&mut self) -> CFGNodeId {
         let id = self.next_id;
         self.next_id += 1;
@@ -116,13 +116,13 @@ impl CFG {
             CFGNode::Root(root) => {
                 buffer.push_str(&format!("root: {}\n", node_id));
                 for node in root {
-                    self.debug_traverse(symbols, node,  buffer, depth + 2);
+                    self.debug_traverse(symbols, &node,  buffer, depth + 2);
                 }
             }
             CFGNode::Scope { parent, body } => {
                 buffer.push_str(&format!("scope: {} <-- {}\n", node_id, parent));
                 for node in body {
-                    self.debug_traverse(symbols, node, buffer, depth + 2);
+                    self.debug_traverse(symbols, &node, buffer, depth + 2);
                 }
             }
             CFGNode::Quotation(_) => { todo!() }
@@ -130,10 +130,16 @@ impl CFG {
             CFGNode::ReaderMacro { .. } => { todo!() }
             CFGNode::Macro { .. } => { todo!() }
             CFGNode::Symbol(id) => {
-                let symbol = symbols.get(id);
+                let symbol = symbols.get(&id);
                 buffer.push_str(&format!("symbol: {} --> {} | {:?}\n", node_id, id, symbol));
             }
             CFGNode::Unknown(_) => { todo!() }
+            CFGNode::Number(num) => {
+                buffer.push_str(&format!("number: {} --> {:?}\n", node_id, num));
+            }
+            CFGNode::Builtin(bt) => {
+                buffer.push_str(&format!("builtin: {} --> {:?}\n", node_id, bt));
+            }
         }
     }
 }

@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use std::sync::RwLock;
 use crate::sources::{EntryId, SourceId};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StackEffect {
     pub inputs: Vec<String>,
     pub outputs: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionDef {
     symbol: SymbolId,
     stack_effect: StackEffect,
@@ -18,7 +18,7 @@ pub struct FunctionDef {
     recursive: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SymbolKind {
     Builtin(Builtin),
     Function(FunctionDef),

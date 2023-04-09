@@ -1,7 +1,7 @@
 use crate::lexer::{Lexer, Word};
 use crate::symbol::{SymbolId, SymbolKind, SymbolStorage};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Number {
     Uint(u64),
     Int(i64),
@@ -24,7 +24,7 @@ impl Number {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Builtin {
     Number(Number),
     Add,
