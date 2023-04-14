@@ -1,6 +1,7 @@
 #include "kette/testing.h"
 
-int main() {
-  testing();
-  return 0;
+namespace Kette {
+  int main() {
+    return 0;
+  }
 }

@@ -2,9 +2,20 @@ import os
 import hashlib
 import json
 import subprocess
+import argparse
 
 cc = ["clang++", "-Iinclude"]
 build = "build/"
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument("--clear", action='store_true')
+args = parser.parse_args()
+
+if args.clear:
+  filelist = [ f for f in os.listdir(build) ]
+  for f in filelist:
+    os.remove(os.path.join(build, f))
+  exit(0)
 
 hashes: dict
 
