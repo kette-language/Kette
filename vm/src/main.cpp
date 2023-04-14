@@ -1,7 +1,8 @@
-#include "kette/testing.h"
+#include <kette/reader.hpp>
 
-namespace Kette {
-  int main() {
-    return 0;
-  }
+auto main() -> i32 {
+  auto reader = Kette::Reader(R"(
+    5 3 + drop
+  )");
+  return 0;
 }
