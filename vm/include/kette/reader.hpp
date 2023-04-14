@@ -1,9 +1,11 @@
+#pragma once
+
 #include <string_view>
-#include <kette/types.h>
+#include <kette/types.hpp>
 
 namespace Kette {
 
-class Reader {
+  class Reader {
   private:
     std::string_view source;
     i64 cursor;
@@ -11,6 +13,6 @@ class Reader {
 
   public:
     Reader(std::string_view source);
-};
+  };
 
-}
+} // namespace Kette
