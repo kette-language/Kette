@@ -11,8 +11,12 @@
 namespace kette {
   using NumberWord = std::variant<u64, i64, f64>;
 
-  struct StringWord { std::string value; };
-  struct IdentifierWord { std::string value; };
+  struct StringWord {
+    std::string value;
+  };
+  struct IdentifierWord {
+    std::string value;
+  };
 
   using Word = std::variant<std::monostate, IdentifierWord, StringWord, NumberWord>;
 
@@ -44,19 +48,20 @@ namespace kette {
 
   public:
     Reader(std::string_view source);
+
   private:
     auto increment_line();
     auto increment_column();
     auto skip_whitespace();
+
   public:
     auto read_word_raw() -> std::optional<RawWord>;
     auto read_word() -> Word;
   };
 
-  auto to_string(const Word& word) -> std::string;
+  auto to_string(const Word &word) -> std::string;
 
-  template <typename T>
-  auto try_parse(std::string_view str) -> std::optional<T> {
+  template <typename T> auto try_parse(std::string_view str) -> std::optional<T> {
     T parsed_number{};
     auto [ptr, error_code] = std::from_chars(str.data(), str.data() + str.size(), parsed_number);
 
@@ -70,4 +75,4 @@ namespace kette {
     }
   }
 
-} // namespace Kette
+} // namespace kette
