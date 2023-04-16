@@ -4,12 +4,12 @@ UseTab: Never
 TabWidth: 2
 IndentWidth: 2
 AccessModifierOffset: -2
-IndentCaseLabels: false
+IndentCaseLabels: true
 ColumnLimit: 100
 BreakBeforeBraces: Attach
 
 SortIncludes: true
-SortUsingDeclarations: false
+SortUsingDeclarations: true
 
 NamespaceIndentation: All
 CompactNamespaces: true

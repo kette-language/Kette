@@ -83,9 +83,9 @@ namespace kette {
 
   auto to_string(const Word &word) -> std::string {
     return std::visit(match {
-      [](IdentifierWord const & val) { return val.value; },
-      [](StringWord const & val) { return val.value; },
-      [](NumberWord const & val) { 
+      [](IdentifierWord const& val) { return val.value; },
+      [](StringWord const& val) { return val.value; },
+      [](NumberWord const& val) { 
         return std::visit(
           [](auto &&num) { return std::to_string(num); }, val);
         },

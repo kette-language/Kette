@@ -1,6 +1,9 @@
 #pragma once
 
+#include <span>
+#include <string>
 #include <kette/defaults.hpp>
+
 
 #ifdef __unix__
 #include <unistd.h>
@@ -34,11 +37,15 @@ namespace kette::mem {
     ExecutableMemory(usize size);
     ~ExecutableMemory();
     auto resize(usize size) -> void;
+    auto push(u8 value) -> void;
+    auto push_span(std::span<u8> span) -> void;
+    auto span() -> std::span<u8>;
+    auto to_string() -> std::string;
   };
 
   template <typename T> 
   auto ceil(T size, T ceiling) -> T {
-    return (size / ceiling + 1) * ceiling;
+    return (size / ceiling + (size % ceiling != 0)) * ceiling;
   }
 
 } // namespace kette::mem

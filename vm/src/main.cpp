@@ -2,6 +2,7 @@
 #include <kette/mem.hpp>
 #include <variant>
 #include <iostream>
+#include <cstdio>
 
 const auto DEMO = R"(
     5 3 + . 6.420 3.0 - . "lol" println
@@ -14,9 +15,10 @@ auto main() -> i32 {
     std::cout << "\'" << kette::to_string(word) << "\'"
               << ", ";
   }
-
-  auto mem = kette::mem::ExecutableMemory { 200 }; 
-  mem.resize(7000);
   std::cout << std::endl;
+
+  auto mem = kette::mem::ExecutableMemory { 1300 }; 
+  mem.push(0xC3);
+  std::cout << mem.to_string() << std::endl;
   return 0;
 }

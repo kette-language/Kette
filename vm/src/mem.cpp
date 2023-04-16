@@ -2,6 +2,10 @@
 #include <kette/mem.hpp>
 #include <cstring>
 #include <iostream>
+#include <span>
+#include <sstream>
+#include <iomanip>
+
 #ifdef __unix__
 #include <stdlib.h>
 #include <sys/mman.h>
@@ -57,4 +61,39 @@ namespace kette::mem {
     allocation = new_allocation;
     capacity = new_capacity;
   }
+
+  auto ExecutableMemory::push(u8 value) -> void {
+    if (length == capacity) {
+      resize(capacity * 2);
+    }
+    auto ptr = reinterpret_cast<u8*>(allocation) + length;
+    *ptr = value;
+    length++;
+  }
+
+  auto ExecutableMemory::push_span(std::span<u8> span) -> void {
+    if (length + span.size() >= capacity) {
+      resize(capacity * 2);
+    }
+    auto ptr = reinterpret_cast<u8*>(allocation) + length;
+    std::memcpy(ptr, span.data(), span.size());
+    length += span.size();
+  }
+
+  auto ExecutableMemory::span() -> std::span<u8> {
+    return std::span<u8> {static_cast<u8*>(allocation), length};
+  }
+
+  auto ExecutableMemory::to_string() -> std::string {
+    auto data = span();
+    std::ostringstream oss;
+    oss << "Executable Memory {" << capacity << ", " << length << ", [";
+    oss << std::hex << std::setfill('0');
+    for (auto c : data) {
+      oss << "0x" << std::setw(2) << static_cast<int>(c) << ", ";
+    }
+    oss << "]}";
+    return oss.str();
+  }
+
 } // namespace kette::mem
