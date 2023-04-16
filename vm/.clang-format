@@ -8,7 +8,7 @@ IndentCaseLabels: false
 ColumnLimit: 100
 BreakBeforeBraces: Attach
 
-SortIncludes: false
+SortIncludes: true
 SortUsingDeclarations: false
 
 NamespaceIndentation: All

@@ -20,21 +20,6 @@ namespace kette {
 
   using Word = std::variant<std::monostate, IdentifierWord, StringWord, NumberWord>;
 
-  // struct WordVisitor {
-  //   void operator()(std::monostate none) const {
-  //     return;
-  //   }
-  //   auto operator()(Identifier* val) -> const Identifier* {
-  //     return val;
-  //   }
-  //   auto operator()(String val) -> const String {
-  //     return val;
-  //   }
-  //   auto operator()(Number val) -> const Number {
-  //     return val;
-  //   }
-  // };
-
   struct RawWord {
     std::string_view value;
     i64 line, column;

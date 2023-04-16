@@ -4,6 +4,7 @@ project(Kette)
 
 add_executable(${PROJECT_NAME}
     "src/main.cpp"
+    "src/mem.cpp"
     "src/reader/reader.cpp"
 )
 

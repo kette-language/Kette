@@ -82,12 +82,14 @@ namespace kette {
   }
 
   auto to_string(const Word &word) -> std::string {
-    if (auto val = std::get_if<IdentifierWord>(&word)) return val->value;
-    if (auto val = std::get_if<StringWord>(&word)) return val->value;
-    if (auto val = std::get_if<NumberWord>(&word))
-      return std::visit(
-          [](auto &&num) -> auto{ return std::to_string(num); }, *val);
-    else
-      return "None";
+    return std::visit(match {
+      [](IdentifierWord const & val) { return val.value; },
+      [](StringWord const & val) { return val.value; },
+      [](NumberWord const & val) { 
+        return std::visit(
+          [](auto &&num) { return std::to_string(num); }, val);
+        },
+      [](auto) { return std::string{"None"}; },
+    }, word);
   }
 } // namespace kette
