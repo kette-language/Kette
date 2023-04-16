@@ -19,6 +19,9 @@ auto main() -> i32 {
 
   auto mem = kette::mem::ExecutableMemory { 1300 }; 
   mem.push(0xC3);
+
+  auto fn = mem.to_function();
+  fn();
   std::cout << mem.to_string() << std::endl;
   return 0;
 }

@@ -96,4 +96,7 @@ namespace kette::mem {
     return oss.str();
   }
 
+  auto ExecutableMemory::to_function() -> int(*)() {
+    return reinterpret_cast<int(*)()>(allocation);
+  }
 } // namespace kette::mem
