@@ -7,6 +7,22 @@
 #include <iostream>
 
 namespace kette {
+  Word::Word() {
+    data = std::monostate();
+    line = -1;
+    column = -1;
+  }
+
+  Word::Word(WordData word, const RawWord& raw) {
+    data = word;
+    line = raw.line;
+    column = raw.column;
+  }
+
+  auto Word::isNull() -> bool {
+    return std::holds_alternative<std::monostate>(data);
+  }
+  
   Reader::Reader(std::string_view a_source) {
     source = a_source;
     cursor = 0;
@@ -66,19 +82,19 @@ namespace kette {
 
   auto Reader::readWord() -> Word {
     auto maybe_raw = readWordRaw();
-    if (!maybe_raw.has_value()) return Word{};
+    if (!maybe_raw.has_value()) return Word();
     auto raw = maybe_raw.value();
 
     // string
     if (raw.value.starts_with("\""))
-      return StringWord{std::string{raw.value.substr(1, raw.value.length() - 2)}};
+      return Word(StringWord{ std::string(raw.value.substr(1, raw.value.length() - 2)) }, raw);
 
     // number
-    if (auto val = try_parse<u64>(raw.value)) return NumberWord{*val};
-    if (auto val = try_parse<i64>(raw.value)) return NumberWord{*val};
-    if (auto val = try_parse<f64>(raw.value)) return NumberWord{*val};
+    if (auto val = try_parse<u64>(raw.value)) return Word(NumberWord(*val), raw);
+    if (auto val = try_parse<i64>(raw.value)) return Word(NumberWord(*val), raw);
+    if (auto val = try_parse<f64>(raw.value)) return Word(NumberWord(*val), raw);
 
-    return IdentifierWord{std::string{raw.value}};
+    return Word(IdentifierWord { std::string(raw.value) }, raw);
   }
 
   auto to_string(const Word &word) -> std::string {
@@ -90,6 +106,6 @@ namespace kette {
           [](auto &&num) { return std::to_string(num); }, val);
         },
       [](auto) { return std::string{"None"}; },
-    }, word);
+    }, word.data);
   }
 } // namespace kette

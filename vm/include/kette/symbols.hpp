@@ -1,7 +1,7 @@
 #include <kette/defaults.hpp>
 #include <map>
 
-namespace kette::symbols {
+namespace kette {
   using SymbolId = usize;
 
   struct Symbol {
@@ -19,6 +19,10 @@ namespace kette::symbols {
     auto getNextId() -> SymbolId;
 
   public:
+    auto contains(std::string_view str) -> bool;
     auto insert(Symbol sym) -> SymbolId;
+    auto getId(std::string_view str) -> std::optional<SymbolId>;
+    auto getFromId(SymbolId id) -> Symbol*;
+    auto get(std::string_view str) -> Symbol*;
   };
 }

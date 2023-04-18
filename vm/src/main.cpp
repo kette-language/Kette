@@ -1,4 +1,4 @@
-#include <kette/reader.hpp>
+#include <kette/context.hpp>
 #include <kette/mem.hpp>
 #include <kette/defaults.hpp>
 
@@ -7,19 +7,15 @@ const auto DEMO = R"(
 )";
 
 auto main() -> i32 {
-  auto reader = kette::Reader(DEMO);
+  auto context = kette::Context();
 
-  for (auto word = reader.read_word(); !std::holds_alternative<std::monostate>(word); word = reader.read_word()) {
-    std::cout << "\'" << kette::to_string(word) << "\'"
-              << ", ";
-  }
-  std::cout << std::endl;
+  context.execute(DEMO);
 
-  auto mem = kette::mem::ExecutableMemory { 1300 }; 
-  mem.push(0xC3);
+  // auto mem = kette::mem::ExecutableMemory { 1300 }; 
+  // mem.push(0xC3);
 
-  auto fn = mem.to_function();
-  fn();
-  std::cout << mem.to_string() << std::endl;
+  // auto fn = mem.to_function();
+  // fn();
+  // std::cout << mem.to_string() << std::endl;
   return 0;
 }

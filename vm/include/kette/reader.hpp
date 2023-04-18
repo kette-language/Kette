@@ -13,12 +13,23 @@ namespace kette {
     std::string value;
   };
 
-  using Word = std::variant<std::monostate, IdentifierWord, StringWord, NumberWord>;
+  using WordData = std::variant<std::monostate, IdentifierWord, StringWord, NumberWord>;
 
   struct RawWord {
     std::string_view value;
     i64 line, column;
   };
+  
+  struct Word {
+    WordData data;
+    i64 line, column;
+  
+    Word();
+    Word(WordData word, const RawWord& raw);
+    auto isNull() -> bool;
+  };
+
+
 
   class Reader {
   private:

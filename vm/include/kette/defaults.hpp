@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <variant>
+#include <tuple>
 #include <span>
 #include <string>
 #include <optional>
