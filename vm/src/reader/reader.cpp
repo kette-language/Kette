@@ -14,31 +14,31 @@ namespace kette {
     column = 1;
   }
 
-  auto Reader::increment_line() {
+  auto Reader::incrementLine() {
     cursor++;
     line++;
     column = 1;
   }
 
-  auto Reader::increment_column() {
+  auto Reader::incrementColumn() {
     cursor++;
     column++;
   }
 
-  auto Reader::skip_whitespace() {
+  auto Reader::skipWhitespace() {
     auto sub = source.substr(cursor);
     for (auto const &c : sub) {
       if (c == ' ' || c == '\t')
-        increment_column();
+        incrementColumn();
       else if (c == '\n')
-        increment_line();
+        incrementLine();
       else
         break;
     }
   }
 
-  auto Reader::read_word_raw() -> std::optional<RawWord> {
-    skip_whitespace();
+  auto Reader::readWordRaw() -> std::optional<RawWord> {
+    skipWhitespace();
     if (source.length() == cursor) return std::nullopt;
 
     auto start_line   = line;
@@ -50,13 +50,13 @@ namespace kette {
       if (!is_string && (c == ' ' || c == '\t' || c == '\n')) break;
       if (c == '\"') {
         if (is_string) {
-          increment_column();
+          incrementColumn();
           break;
         } else {
           is_string = true;
         }
       }
-      increment_column();
+      incrementColumn();
     }
     auto length = cursor - start_cursor;
     auto raw    = source.substr(start_cursor, length);
@@ -64,8 +64,8 @@ namespace kette {
     ;
   }
 
-  auto Reader::read_word() -> Word {
-    auto maybe_raw = read_word_raw();
+  auto Reader::readWord() -> Word {
+    auto maybe_raw = readWordRaw();
     if (!maybe_raw.has_value()) return Word{};
     auto raw = maybe_raw.value();
 

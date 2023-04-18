@@ -1,11 +1,6 @@
 #pragma once
 
-#include <string_view>
-#include <string>
 #include <charconv>
-#include <variant>
-#include <optional>
-
 #include <kette/defaults.hpp>
 
 namespace kette {
@@ -35,13 +30,13 @@ namespace kette {
     Reader(std::string_view source);
 
   private:
-    auto increment_line();
-    auto increment_column();
-    auto skip_whitespace();
+    auto incrementLine();
+    auto incrementColumn();
+    auto skipWhitespace();
 
   public:
-    auto read_word_raw() -> std::optional<RawWord>;
-    auto read_word() -> Word;
+    auto readWordRaw() -> std::optional<RawWord>;
+    auto readWord() -> Word;
   };
 
   auto to_string(const Word &word) -> std::string;

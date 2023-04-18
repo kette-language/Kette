@@ -6,6 +6,7 @@ add_executable(${PROJECT_NAME}
     "src/main.cpp"
     "src/mem.cpp"
     "src/reader/reader.cpp"
+    "src/reader/symbols.cpp"
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include")

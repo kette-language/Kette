@@ -1,8 +1,6 @@
 #include <kette/defaults.hpp>
 #include <kette/mem.hpp>
 #include <cstring>
-#include <iostream>
-#include <span>
 #include <sstream>
 #include <iomanip>
 

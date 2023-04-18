@@ -1,7 +1,13 @@
 #pragma once
 #include <stdint.h>
-#include <concepts>
 #include <variant>
+#include <span>
+#include <string>
+#include <optional>
+#include <array>
+
+#include <iostream>
+#include <cstdio>
 
 using i8  = char;
 using i16 = short;

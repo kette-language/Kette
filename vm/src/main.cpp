@@ -1,8 +1,6 @@
 #include <kette/reader.hpp>
 #include <kette/mem.hpp>
-#include <variant>
-#include <iostream>
-#include <cstdio>
+#include <kette/defaults.hpp>
 
 const auto DEMO = R"(
     5 3 + . 6.420 3.0 - . "lol" println
