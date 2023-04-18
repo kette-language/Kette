@@ -8,7 +8,7 @@ const auto DEMO = R"(
 
 auto main() -> i32 {
   auto context = kette::Context();
-
+  context.addBuiltinSymbols();
   context.execute(DEMO);
 
   // auto mem = kette::mem::ExecutableMemory { 1300 }; 

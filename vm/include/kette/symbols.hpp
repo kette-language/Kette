@@ -4,9 +4,15 @@
 namespace kette {
   using SymbolId = usize;
 
+  enum SymbolKind {
+    Builtin,
+    ReaderMacro,
+    ReaderMacroInstance,
+  };
+
   struct Symbol {
     std::string identifier;
-    bool builtin;
+    SymbolKind kind;
   };
 
   class SymbolTable {

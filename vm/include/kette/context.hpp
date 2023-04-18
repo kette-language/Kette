@@ -11,5 +11,6 @@ namespace kette {
     ~Context();
 
     auto execute(std::string_view str) -> void;
+    auto addBuiltinSymbols() -> void;
   };
 }
