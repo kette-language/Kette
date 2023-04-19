@@ -29,9 +29,9 @@ namespace kette {
     return &symbols[id];
   }
 
-  auto SymbolTable::get(std::string_view str) -> Symbol* {
+  auto SymbolTable::get(std::string_view str) -> std::tuple<SymbolId, Symbol*> {
     auto key = getId(str);
-    if (!key.has_value()) return nullptr;
-    return &symbols[key.value()];
+    if (!key.has_value()) return { -1, nullptr } ;
+    return {key.value(), &symbols[key.value()]};
   }
 }

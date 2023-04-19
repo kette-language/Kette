@@ -8,7 +8,14 @@ namespace kette {
     return id;
   }
 
-  auto CFGTree::insertNode(CFGNode node) -> CFGNodeId {
+  auto CFGTree::makeRootNode() -> std::tuple<CFGNodeId, CFGNode*> {
+    auto id = getNextId();
+    auto node = new CFGNode { CFGRootNode {} } ;
+    nodes[id] = node;
+    return { id, node };
+  }
+
+  auto CFGTree::insertNode(CFGNode* node) -> CFGNodeId {
     auto id = getNextId();
     nodes[id] = node;
     return id;

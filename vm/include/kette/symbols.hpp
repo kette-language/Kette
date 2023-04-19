@@ -33,6 +33,6 @@ namespace kette {
     auto insertReaderMacro(SymbolId macro, SymbolId instance);
     auto getId(std::string_view str) -> std::optional<SymbolId>;
     auto getFromId(SymbolId id) -> Symbol*;
-    auto get(std::string_view str) -> Symbol*;
+    auto get(std::string_view str) -> std::tuple<SymbolId, Symbol*>;
   };
 }

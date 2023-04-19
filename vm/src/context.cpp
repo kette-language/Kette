@@ -14,7 +14,10 @@ namespace kette {
 
   auto Context::execute(std::string_view str) -> void {
     auto reader = Reader(str);
-    
+    auto [treeId, treePtr] = cfgs->newTree();
+    auto tree = treePtr;
+    auto [rootId, root] = treePtr->makeRootNode();
+
     for (auto word = reader.readWord(); !word.isNull(); word = reader.readWord()) {
       std::visit(match {
         [&](IdentifierWord const& val) { 
@@ -23,23 +26,28 @@ namespace kette {
             return;
           }
           if (symbols->contains(val.value)) {
-            auto sym = symbols->get(val.value);
-            if (sym->kind == ReaderMacro) {
+            auto [symId, sym] = symbols->get(val.value);
+            if (sym->kind == SymbolKind::ReaderMacro) {
               printf("todo: execute reader macro");
+            } else if (sym->kind == SymbolKind::Builtin) {
+              auto node = new CFGNode { CFGSymbolNode { symId } };
+              tree->insertNode(node);
+            } else {
+              printf("todo: macro instance\n");
+              return;
             }
           } else {
-            printf("todo: Unknown Symbol => Lookup after compilation unit\n");
+            auto node = new CFGNode { CFGUnknownSymbolNode { val.value } };
+            tree->insertNode(node);
           }
         },
-        [](StringWord const& val) { 
-          printf("todo: Strings\n");
-          return;
+        [tree](StringWord const& val) { 
+          auto node = new CFGNode { CFGStringNode { val.value } };
+          tree->insertNode(node);
         },
-        [](NumberWord const& val) { 
-          std::visit([](auto &&num) {
-            printf("todo: Numbers\n");
-            return;; 
-          }, val);
+        [tree](NumberWord const& val) { 
+          auto node = new CFGNode { CFGNumberNode { val } };
+          tree->insertNode(node);
         },
         [](auto) { },
       }, word.data);

@@ -44,14 +44,15 @@ namespace kette {
   class CFGTree {
   private:
     std::map<SymbolId, CFGNodeId> mappings;
-    std::map<CFGNodeId, CFGNode> nodes;
+    std::map<CFGNodeId, CFGNode*> nodes;
     CFGNodeId nextId;
   
   private:
     auto getNextId() -> CFGNodeId;
   
   public:
-    auto insertNode(CFGNode node) -> CFGNodeId;
+    auto makeRootNode() -> std::tuple<CFGNodeId, CFGNode*>;
+    auto insertNode(CFGNode* node) -> CFGNodeId;
     auto toString() -> std::string;
   };
 
