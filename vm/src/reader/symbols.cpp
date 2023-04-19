@@ -4,7 +4,7 @@ namespace kette {
   auto SymbolTable::getNextId() -> SymbolId {
     auto id = nextId;
     nextId++;
-    return nextId;
+    return id;
   }
 
   auto SymbolTable::contains(std::string_view str) -> bool {

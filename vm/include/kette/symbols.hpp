@@ -1,3 +1,5 @@
+#pragma once
+
 #include <kette/defaults.hpp>
 #include <map>
 
@@ -19,6 +21,7 @@ namespace kette {
   private:
     std::map<std::string, SymbolId> mappings;
     std::map<SymbolId, Symbol> symbols;
+    std::map<SymbolId, SymbolId> reader_macros;
     SymbolId nextId;
 
   private:
@@ -27,6 +30,7 @@ namespace kette {
   public:
     auto contains(std::string_view str) -> bool;
     auto insert(Symbol sym) -> SymbolId;
+    auto insertReaderMacro(SymbolId macro, SymbolId instance);
     auto getId(std::string_view str) -> std::optional<SymbolId>;
     auto getFromId(SymbolId id) -> Symbol*;
     auto get(std::string_view str) -> Symbol*;

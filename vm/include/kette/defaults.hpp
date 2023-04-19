@@ -6,6 +6,8 @@
 #include <string>
 #include <optional>
 #include <array>
+#include <vector>
+#include <memory>
 
 #include <iostream>
 #include <cstdio>

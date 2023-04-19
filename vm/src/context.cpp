@@ -1,18 +1,20 @@
-#include <kette/defaults.hpp>
 #include <kette/context.hpp>
 #include <kette/reader.hpp>
 
 namespace kette {
   Context::Context() {
     symbols = new SymbolTable;
+    cfgs = new CFGS;
   }
 
   Context::~Context() {
     delete symbols;
+    delete cfgs;
   }
 
   auto Context::execute(std::string_view str) -> void {
     auto reader = Reader(str);
+    
     for (auto word = reader.readWord(); !word.isNull(); word = reader.readWord()) {
       std::visit(match {
         [&](IdentifierWord const& val) { 
@@ -63,8 +65,9 @@ namespace kette {
     symbols->insert(Symbol { "2pick", SymbolKind::Builtin });
     symbols->insert(Symbol { "dip", SymbolKind::Builtin });
     
-    symbols->insert(Symbol { ":", SymbolKind::ReaderMacro });
-    symbols->insert(Symbol { "\"", SymbolKind::ReaderMacro });
-    symbols->insert(Symbol { "\\", SymbolKind::ReaderMacro})
+    auto id_colon = symbols->insert(Symbol { ":", SymbolKind::ReaderMacro });
+    auto id_string = symbols->insert(Symbol { "\"", SymbolKind::ReaderMacro });
+    auto id_backslach = symbols->insert(Symbol { "\\", SymbolKind::ReaderMacro});
+    // todo: write reader macros in C++
   }
 } // namespace kette
