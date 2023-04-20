@@ -24,6 +24,9 @@ namespace kette::mem {
 #error "Unsupported platform"
 #endif
 
+  auto allocate_memory(usize preceiled_size, bool exec) -> std::tuple<void*, usize>;
+  auto free_memory(void* allocation, usize size) -> void;
+
   struct ExecutableMemory {
   private:
     void *allocation;
@@ -40,6 +43,8 @@ namespace kette::mem {
     auto to_string() -> std::string;
     auto to_function() -> int(*)();
   };
+
+
 
   template <typename T> 
   auto ceil(T size, T ceiling) -> T {

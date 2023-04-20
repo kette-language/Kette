@@ -7,6 +7,7 @@ add_executable(${PROJECT_NAME}
     "src/mem.cpp"
     "src/context.cpp"
     "src/cfgs.cpp"
+    "src/stacks.cpp"
     "src/reader/reader.cpp"
     "src/reader/symbols.cpp"
 )

@@ -11,11 +11,11 @@ auto main() -> i32 {
   context.addBuiltinSymbols();
   context.execute(DEMO);
 
-  // auto mem = kette::mem::ExecutableMemory { 1300 }; 
-  // mem.push(0xC3);
+  auto mem = kette::mem::ExecutableMemory { 1300 }; 
+  mem.push(0xC3);
 
-  // auto fn = mem.to_function();
-  // fn();
-  // std::cout << mem.to_string() << std::endl;
+  auto fn = mem.to_function();
+  fn();
+  std::cout << mem.to_string() << std::endl;
   return 0;
 }
