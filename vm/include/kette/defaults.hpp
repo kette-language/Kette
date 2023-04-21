@@ -28,5 +28,7 @@ using f64 = double;
 using usize = uintptr_t;
 using isize = intptr_t;
 
+using cell = uintptr_t;
+
 template<class... Ts> struct match : Ts... { using Ts::operator()...; };
 template<class... Ts> match(Ts...) -> match<Ts...>;
