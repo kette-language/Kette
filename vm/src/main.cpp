@@ -3,7 +3,7 @@
 #include <kette/defaults.hpp>
 
 const auto DEMO = R"(
-    5 3 + . 6.420 3.0 - . "lol" println
+    5 -3 + . 6.420 3.0 - . "lol" println
 )";
 
 auto main() -> i32 {

@@ -53,9 +53,8 @@ namespace kette {
   public:
     auto makeRootNode() -> std::tuple<CFGNodeId, CFGNode*>;
     auto insertNode(CFGNode* node) -> CFGNodeId;
-    auto toString() -> std::string;
+    auto to_string() -> std::string;
   };
-
 
   class CFGS {
   private:

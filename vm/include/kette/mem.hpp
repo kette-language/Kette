@@ -42,6 +42,8 @@ namespace kette::mem {
     auto span() -> std::span<u8>;
     auto to_string() -> std::string;
     auto to_function() -> int(*)();
+
+    inline auto getPtr() -> void*;
   };
 
 

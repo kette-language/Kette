@@ -52,6 +52,8 @@ namespace kette {
         [](auto) { },
       }, word.data);
     }
+
+    std::cout << tree->to_string() << std::endl;
   }
 
   auto Context::addBuiltinSymbols() -> void {

@@ -72,6 +72,10 @@ namespace kette::mem {
     return reinterpret_cast<int(*)()>(allocation);
   }
 
+  inline auto ExecutableMemory::getPtr() -> void* {
+    return allocation;
+  }
+
   auto allocate_memory(usize preceiled_size, bool exec) -> std::tuple<void*, usize> {
     void* allocation;
     auto size = ceil(preceiled_size, PAGE_SIZE);

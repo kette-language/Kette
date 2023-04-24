@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
     "src/stacks.cpp"
     "src/reader/reader.cpp"
     "src/reader/symbols.cpp"
+    "src/compiler/artifacts.cpp"
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/include")
