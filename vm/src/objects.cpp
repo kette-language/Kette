@@ -96,19 +96,15 @@ namespace kette::oo {
     return obj;
   }
 
-  auto indent(int level) -> std::string {
-    return std::string(level * 2, ' ');
-  }
-
   auto to_string(const Object& obj, MapTable& maps, int level) -> std::string {
     std::string output;
 
     Map* obj_map = reinterpret_cast<Map*>(obj.map);
-    output += indent(level) + maps.get_string(obj_map->name) + " { ";
+    output += " " + maps.get_string(obj_map->name) + " { ";
 
     for (size_t i = 0; i < obj_map->slot_count; ++i) {
       SlotDesc slot_desc = obj_map->slot_descs[i];
-      output += indent(level + 1) + maps.get_string(slot_desc.name) + ": ";
+      output += " " + maps.get_string(slot_desc.name) + ": ";
 
       switch (slot_desc.type) {
         case SlotTypes::none:
@@ -128,7 +124,7 @@ namespace kette::oo {
       }
     }
 
-    output += indent(level) + "}";
+    output += " }";
     return output;
   }
 
