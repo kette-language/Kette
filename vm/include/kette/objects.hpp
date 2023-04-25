@@ -14,7 +14,7 @@ namespace kette::oo {
 
   struct SlotDesc {
     cell name;
-    cell type;
+    cell type; // SlotTypes
     cell offset;
   };
 
@@ -32,8 +32,10 @@ namespace kette::oo {
     cell* slots;
 
     Object(Map* mapp);
+    Object(cell* mapp);
     auto get_property(cell name) -> cell;
     auto set_property(cell name, cell value) -> void;
+    auto clone() -> Object;
   };
 
   class MapTable {
@@ -48,11 +50,12 @@ namespace kette::oo {
     auto get_next_map_id() -> cell;
     auto insert_string(const std::string& str) -> cell;
     auto get_or_insert_string(const std::string& str) -> cell;
-    auto get_string(cell id) -> std::string_view;
+    auto get_string(cell id) const -> std::string;
     auto create_map(cell name, SlotDesc* descs, cell slot_count) -> Map*;
   };
 
+  auto to_string(const Object& obj, MapTable& maps, int level = 0) -> std::string;
   namespace tests {
-
+    auto all() -> bool;
   }
 }
