@@ -136,10 +136,14 @@ namespace kette::oo {
       auto shape_name = maps.get_or_insert_string("shape");
       auto shape_x_name = maps.get_or_insert_string("x");
       auto shape_y_name = maps.get_or_insert_string("y");
+      auto shape_x_accessor_name = maps.get_or_insert_string(":x");
+      auto shape_y_accessor_name = maps.get_or_insert_string(":y");
 
       auto shape_slot_descs = std::vector<SlotDesc> {
         {shape_x_name, SlotTypes::value, 0},
         {shape_y_name, SlotTypes::value, 1},
+        {shape_x_name, SlotTypes::accessor, 0},
+        {shape_y_name, SlotTypes::accessor, 1},
       };
 
       auto shape_map = maps.create_map(shape_name, shape_slot_descs.data(), shape_slot_descs.size());

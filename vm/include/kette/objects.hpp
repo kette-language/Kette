@@ -2,7 +2,29 @@
 #include <kette/defaults.hpp>
 
 namespace kette::oo {
-  #define MAP_MAP cell { 0 };
+
+  constexpr uintptr_t TAG_MASK = 0x3;
+  
+  enum TagValues {
+    Integer = 0x1,
+    Float = 0x2,
+};
+
+  // Utility functions to add, extract, and remove tags
+  template <typename T>
+  T* add_tag(T* ptr, uintptr_t tag) {
+    return reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(ptr) | (tag & TAG_MASK));
+  }
+
+  template <typename T>
+  uintptr_t extract_tag(T* ptr) {
+    return reinterpret_cast<uintptr_t>(ptr) & TAG_MASK;
+  }
+
+  template <typename T>
+  T* remove_tag(T* ptr) {
+    return reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(ptr) & ~TAG_MASK);
+  }
 
   // only the predfined ones, futher can be defined.
   // the ones defined here must be kept in Sync!
@@ -10,6 +32,9 @@ namespace kette::oo {
     none,
     parent,
     value,
+    accessor,
+    function,
+    method,
   };
 
   struct SlotDesc {
