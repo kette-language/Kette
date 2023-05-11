@@ -4,7 +4,7 @@
 #include <kette/objects.hpp>
 
 const auto DEMO = R"(
-    5 -3 + . 6.420 3.0 - . "lol" println
+  5 -3 + . 6.420 3.0 - .
 )";
 
 auto main() -> i32 {

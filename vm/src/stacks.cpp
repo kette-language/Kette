@@ -1,4 +1,4 @@
-#include <kette/stacks.h>
+#include <kette/stacks.hpp>
 #include <kette/mem.hpp>
 #include <cstring>
 

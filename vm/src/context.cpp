@@ -1,10 +1,14 @@
 #include <kette/context.hpp>
-#include <kette/reader.hpp>
 
 namespace kette {
   Context::Context() {
     symbols = new SymbolTable;
+    maps = new oo::MapTable();
     cfgs = new CFGS;
+    datastack = new Stack(4096);
+    retainstack = new Stack(4096);
+    callstack = new Stack(4096);
+    
   }
 
   Context::~Context() {

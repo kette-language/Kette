@@ -46,10 +46,10 @@ namespace kette::oo {
   struct Map {
     cell id;
     cell name;
+    cell allocator;
     cell slot_count;
     SlotDesc* slot_descs;
   };
-
 
   struct Object {
     cell* map;
@@ -76,7 +76,7 @@ namespace kette::oo {
     auto insert_string(const std::string& str) -> cell;
     auto get_or_insert_string(const std::string& str) -> cell;
     auto get_string(cell id) const -> std::string;
-    auto create_map(cell name, SlotDesc* descs, cell slot_count) -> Map*;
+    auto create_map(cell name, SlotDesc* descs, cell slot_count, cell allocator) -> Map*;
   };
 
   auto to_string(const Object& obj, MapTable& maps, int level = 0) -> std::string;

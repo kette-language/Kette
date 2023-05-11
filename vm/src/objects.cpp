@@ -34,13 +34,14 @@ namespace kette::oo {
     return insert_string(str);
   }
 
-  auto MapTable::create_map(cell name, SlotDesc* slot_descs, cell slot_count) -> Map* {
+  auto MapTable::create_map(cell name, SlotDesc* slot_descs, cell slot_count, cell allocator) -> Map* {
     auto id = get_next_map_id();
     auto map = new Map;
     map->id = id;
     map->name = name;
     map->slot_count = slot_count;
     map->slot_descs = new SlotDesc[slot_count];
+    map->allocator = allocator;
     for (auto i = 0; i < slot_count; i++) {
       map->slot_descs[i] = slot_descs[i];
     }
@@ -146,7 +147,7 @@ namespace kette::oo {
         {shape_y_name, SlotTypes::accessor, 1},
       };
 
-      auto shape_map = maps.create_map(shape_name, shape_slot_descs.data(), shape_slot_descs.size());
+      auto shape_map = maps.create_map(shape_name, shape_slot_descs.data(), shape_slot_descs.size(), 0);
       auto shape_proto_obj = Object(shape_map);
       shape_proto_obj.set_property(shape_x_name, 0);
       shape_proto_obj.set_property(shape_y_name, 0);
@@ -164,7 +165,7 @@ namespace kette::oo {
         {color_a_name, SlotTypes::value, 3},
       };
 
-      auto color_map = maps.create_map(color_name, color_slot_descs.data(), color_slot_descs.size());
+      auto color_map = maps.create_map(color_name, color_slot_descs.data(), color_slot_descs.size(), 0);
       auto color_proto_obj = Object(color_map);
       color_proto_obj.set_property(color_r_name, 0);
       color_proto_obj.set_property(color_g_name, 0);
@@ -182,7 +183,7 @@ namespace kette::oo {
         {color_name, SlotTypes::parent, 3},
       };
 
-      auto cr_map = maps.create_map(cr_name, cr_slot_descs.data(), cr_slot_descs.size());
+      auto cr_map = maps.create_map(cr_name, cr_slot_descs.data(), cr_slot_descs.size(), 0);
       auto cr_proto_obj = Object(cr_map);
       cr_proto_obj.set_property(cr_width_name, 0);
       cr_proto_obj.set_property(cr_height_name, 0);
