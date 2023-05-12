@@ -49,6 +49,16 @@ namespace kette::oo {
     return map;
   }
 
+  auto MapTable::get_map(cell id) -> Map* {
+    return maps[id];
+  }
+
+  auto MapTable::get_map(const std::string& str) -> Map* {
+    auto id = strings[str];
+    return maps[id];
+  }
+
+
   Object::Object(Map* mapp) {
     map = reinterpret_cast<cell*>(mapp);
     slot_count = mapp->slot_count;
@@ -128,6 +138,7 @@ namespace kette::oo {
     output += " }";
     return output;
   }
+
 
   namespace tests {
     auto all() -> bool {

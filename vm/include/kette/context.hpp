@@ -16,11 +16,12 @@ namespace kette {
     Stack* datastack;
     Stack* retainstack;
     Stack* callstack;
+    std::map<cell, oo::Object*> prototypes;
   public:
     Context();
     ~Context();
 
     auto execute(std::string_view str) -> void;
-    auto addBuiltinSymbols() -> void;
+    auto addBuiltins() -> void;
   };
 }

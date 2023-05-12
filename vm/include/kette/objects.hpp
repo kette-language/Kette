@@ -61,6 +61,7 @@ namespace kette::oo {
     auto get_property(cell name) -> cell;
     auto set_property(cell name, cell value) -> void;
     auto clone() -> Object;
+    auto instanciate(cell* map_table) -> Object; // like clone but only
   };
 
   class MapTable {
@@ -77,6 +78,12 @@ namespace kette::oo {
     auto get_or_insert_string(const std::string& str) -> cell;
     auto get_string(cell id) const -> std::string;
     auto create_map(cell name, SlotDesc* descs, cell slot_count, cell allocator) -> Map*;
+    auto get_map(cell id) -> Map*;
+    auto get_map(const std::string& str) -> Map*;
+
+    inline auto string(const std::string& str) -> cell {
+      return get_or_insert_string(str);
+    }
   };
 
   auto to_string(const Object& obj, MapTable& maps, int level = 0) -> std::string;
