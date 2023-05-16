@@ -4,6 +4,17 @@
 #include <map>
 
 namespace kette {
+  class StringPool {
+  private:
+    std::map<std::string, cell> strings;
+    cell next_id;
+  public:
+    auto get_next_id() -> cell;
+    auto insert_string(const std::string& str) -> cell;
+    auto string(const std::string& str) -> cell;
+    auto get_string(cell id) const -> std::string;
+  };
+
   using SymbolId = usize;
 
   enum SymbolKind {

@@ -8,6 +8,7 @@
 #include <kette/objects.hpp>
 
 namespace kette {
+
   class Context {
   private:
     SymbolTable* symbols;
@@ -16,6 +17,8 @@ namespace kette {
     Stack* datastack;
     Stack* retainstack;
     Stack* callstack;
+    StringPool strings;
+    // Stack* prototypes;
     std::map<cell, oo::Object*> prototypes;
   public:
     Context();

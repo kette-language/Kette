@@ -10,6 +10,8 @@ add_executable(${PROJECT_NAME}
     "src/context.cpp"
     "src/cfgs.cpp"
     "src/stacks.cpp"
+    "src/bytecode.cpp"
+    "src/interpreter.cpp"
     "src/reader/reader.cpp"
     "src/reader/symbols.cpp"
     "src/compiler/artifacts.cpp"

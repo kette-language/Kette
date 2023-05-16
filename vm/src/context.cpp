@@ -1,5 +1,5 @@
 #include <kette/context.hpp>
-
+#include <kette/builtins.hpp>
 namespace kette {
   Context::Context() {
     symbols = new SymbolTable;
@@ -8,6 +8,7 @@ namespace kette {
     datastack = new Stack(4096);
     retainstack = new Stack(4096);
     callstack = new Stack(4096);
+    // prototypes = new Stack(4096);
   }
 
   Context::~Context() {
@@ -60,65 +61,123 @@ namespace kette {
   }
 
   auto Context::addBuiltins() -> void {
-    symbols->insert(Symbol { "+", SymbolKind::Builtin });
-    symbols->insert(Symbol { "-", SymbolKind::Builtin });
-    symbols->insert(Symbol { "*", SymbolKind::Builtin });
-    symbols->insert(Symbol { "/", SymbolKind::Builtin });
-    symbols->insert(Symbol { ".", SymbolKind::Builtin });
-    symbols->insert(Symbol { "drop", SymbolKind::Builtin });
-    symbols->insert(Symbol { "dup", SymbolKind::Builtin });
-    symbols->insert(Symbol { "2dup", SymbolKind::Builtin });
-    symbols->insert(Symbol { "swap", SymbolKind::Builtin });
-    symbols->insert(Symbol { "2swap", SymbolKind::Builtin });
-    symbols->insert(Symbol { "call", SymbolKind::Builtin});
-    symbols->insert(Symbol { "over", SymbolKind::Builtin });
-    symbols->insert(Symbol { "2over", SymbolKind::Builtin });
-    symbols->insert(Symbol { "rot", SymbolKind::Builtin });
-    symbols->insert(Symbol { "2rot", SymbolKind::Builtin });
-    symbols->insert(Symbol { "pick", SymbolKind::Builtin });
-    symbols->insert(Symbol { "2pick", SymbolKind::Builtin });
-    symbols->insert(Symbol { "dip", SymbolKind::Builtin });
+    symbols->insert({ "+", SymbolKind::Builtin });
+    symbols->insert({ "-", SymbolKind::Builtin });
+    symbols->insert({ "*", SymbolKind::Builtin });
+    symbols->insert({ "/", SymbolKind::Builtin });
+    symbols->insert({ ".", SymbolKind::Builtin });
+    symbols->insert({ "drop", SymbolKind::Builtin });
+    symbols->insert({ "dup", SymbolKind::Builtin });
+    symbols->insert({ "2dup", SymbolKind::Builtin });
+    symbols->insert({ "swap", SymbolKind::Builtin });
+    symbols->insert({ "2swap", SymbolKind::Builtin });
+    symbols->insert({ "call", SymbolKind::Builtin});
+    symbols->insert({ "over", SymbolKind::Builtin });
+    symbols->insert({ "2over", SymbolKind::Builtin });
+    symbols->insert({ "rot", SymbolKind::Builtin });
+    symbols->insert({ "2rot", SymbolKind::Builtin });
+    symbols->insert({ "pick", SymbolKind::Builtin });
+    symbols->insert({ "2pick", SymbolKind::Builtin });
+    symbols->insert({ "dip", SymbolKind::Builtin });
     
+    symbols->insert({ "datastack>>", SymbolKind::Builtin });
+    symbols->insert({ "retainstack>>", SymbolKind::Builtin });
+    symbols->insert({ "callstack>>", SymbolKind::Builtin });
+
+    symbols->insert({ ">r", SymbolKind::Builtin });
+    symbols->insert({ "r>", SymbolKind::Builtin });
+
+    symbols->insert({ ">c", SymbolKind::Builtin });
+    symbols->insert({ "c>", SymbolKind::Builtin });
+
+    symbols->insert({ "malloc", SymbolKind::Builtin });
+    symbols->insert({ "free", SymbolKind::Builtin });
+
+    symbols->insert({ "@", SymbolKind::Builtin });
+    symbols->insert({ "!", SymbolKind::Builtin });
+
+    symbols->insert({ "@n", SymbolKind::Builtin });
+    symbols->insert({ "!n", SymbolKind::Builtin });
+
+    symbols->insert({ "syscall0", SymbolKind::Builtin });
+    symbols->insert({ "syscall1", SymbolKind::Builtin });
+    symbols->insert({ "syscall2", SymbolKind::Builtin });
+    symbols->insert({ "syscall3", SymbolKind::Builtin });
+    symbols->insert({ "syscall4", SymbolKind::Builtin });
+    symbols->insert({ "syscall5", SymbolKind::Builtin });
+    symbols->insert({ "syscall6", SymbolKind::Builtin });
+
     auto id_colon = symbols->insert(Symbol { ":", SymbolKind::ReaderMacro });
     auto id_string = symbols->insert(Symbol { "\"", SymbolKind::ReaderMacro });
     auto id_backslach = symbols->insert(Symbol { "\\", SymbolKind::ReaderMacro});
-    // todo: write reader macros in C++
+    // // todo: write reader macros in C++
 
-    auto entry_name = maps->string("entry");
-    auto source_name = maps->string("source");
-    auto name_name = maps->string("name");
-    auto stack_effect_name = maps->string("stack-effect");
+    // auto executable_trait_slot_desc = new std::vector<oo::SlotDesc> {
+    //   { strings.string("entry"), oo::SlotTypes::value, 0},
+    // };
+    // auto executable_map = maps->create_map(
+    //   strings.string("executable"), 
+    //   executable_trait_slot_desc->data(), 
+    //   executable_trait_slot_desc->size(), 0);
+    // auto executable_object = new oo::Object(executable_map);
+    // executable_object->set_property(strings.string("entry"), 0);
+    // prototypes[strings.string("executable")] = executable_object;
     
-    auto executable_name = maps->string("executable");
-    auto executable_trait_slot_desc = new std::vector<oo::SlotDesc> {
-      { entry_name, oo::SlotTypes::value, 0},
-    };
-    auto executable_map = maps->create_map(executable_name, executable_trait_slot_desc->data(), executable_trait_slot_desc->size(), 0);
-    auto executable_object = new oo::Object(executable_map);
-    executable_object->set_property(entry_name, 0);
-    prototypes[executable_name] = executable_object;
-    
-    auto quotation_name = maps->string("builtin-quotation");
-    auto quotation_slots_desc = new std::vector<oo::SlotDesc> {
-      { executable_name, oo::SlotTypes::parent, 0},
-    };
-    auto quotation_map = maps->create_map(quotation_name, quotation_slots_desc->data(), quotation_slots_desc->size(), 0);
-    auto quotation_object = new oo::Object(quotation_map);
-    quotation_object->set_property(executable_name, reinterpret_cast<cell>(executable_object));
-    prototypes[executable_name] = executable_object;
+    // auto quotation_slots_desc = new std::vector<oo::SlotDesc> {
+    //   { strings.string("executable"), oo::SlotTypes::value, 0},
+    // };
+    // auto quotation_map = maps->create_map(
+    //   strings.string("quotation"), 
+    //   quotation_slots_desc->data(), 
+    //   quotation_slots_desc->size(), 0);
+    // auto quotation_object = new oo::Object(quotation_map);
+    // quotation_object->set_property(strings.string("executable"), reinterpret_cast<cell>(executable_object));
+    // prototypes[strings.string("quotation")] = quotation_object;
 
-    auto word_name = maps->string("builtin-word");
-    auto word_slots_desc = new std::vector<oo::SlotDesc> {
-      { name_name, oo::SlotTypes::value, 0},
-      { stack_effect_name, oo::SlotTypes::value, 1},
-      { executable_name, oo::SlotTypes::parent, 2},
-    };
-    auto word_map = maps->create_map(word_name, word_slots_desc->data(), word_slots_desc->size(), 0);
-    auto word_object = new oo::Object(quotation_map);
-    quotation_object->set_property(executable_name, 0);
-    quotation_object->set_property(stack_effect_name, 0);
-    quotation_object->set_property(executable_name, reinterpret_cast<cell>(executable_object));
-    prototypes[word_name] = executable_object;
+    // auto word_slots_desc = new std::vector<oo::SlotDesc> {
+    //   { strings.string("name"), oo::SlotTypes::value, 0},
+    //   { strings.string("stack-effect"), oo::SlotTypes::value, 1},
+    //   { strings.string("executable"), oo::SlotTypes::value, 2},
+    //   { strings.string("annotations"), oo::SlotTypes::value, 3 },
+    // };
+    // auto word_map = maps->create_map(
+    //   strings.string("word"), 
+    //   word_slots_desc->data(), 
+    //   word_slots_desc->size(), 0);
+    // auto word_object = new oo::Object(quotation_map);
+    // word_object->set_property(strings.string("name"), 0);
+    // word_object->set_property(strings.string("stack-effect"), 0);
+    // word_object->set_property(strings.string("executable"), reinterpret_cast<cell>(executable_object));
+    // prototypes[strings.string("word")] = word_object;
+
+
+    // auto dot_word_executable_object = new oo::Object(word_object->clone());
+    // dot_word_executable_object->set_property(entry_name, reinterpret_cast<cell>(builtins::print_num));
+    // auto dot_word_object = new oo::Object(word_object->clone());
+    // word_object->set_property(strings.string("name"), strings.string("."));
+    // word_object->set_property(executable_name, reinterpret_cast<cell>(dot_word_executable_object));
+
+
+    // auto fixnum_trait_name = maps->string("fixnum-traits");
+    // auto fixnum_trait_slot_desc = new std::vector<oo::SlotDesc> {
+    //   { fixnum_trait_name, oo::SlotTypes::function, 0}
+    // };
+    // auto fixnum_trait_map = maps->create_map(fixnum_trait_name, fixnum_trait_slot_desc->data(), fixnum_trait_slot_desc->size(), 0);
+    // auto fixnum_trait_object = new oo::Object(fixnum_trait_map);
+    // prototypes[fixnum_trait_name] = fixnum_trait_object;
+
+    // auto fixnum_name = maps->string("fixnum");
+    // auto fixnum_trait_slot_desc = new std::vector<oo::SlotDesc> {
+    //   { fixnum_trait_name, oo::SlotTypes::parent, 0},
+    //   { value_name, oo::SlotTypes::value, 1 },
+    //   { value_accessor, oo::SlotTypes::accessor, 2},
+    // };
+    // auto fixnum_map = maps->create_map(fixnum_name, fixnum_trait_slot_desc->data(), fixnum_trait_slot_desc->size(), 0);
+    // auto fixnum_object = new oo::Object(fixnum_map);
+    // fixnum_object->set_property(entry_name, 0);
+    // prototypes[fixnum_name] = fixnum_object;
+
 
   }
+
 } // namespace kette

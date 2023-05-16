@@ -8,9 +8,9 @@ const auto DEMO = R"(
 )";
 
 auto main() -> i32 {
-  auto context = kette::Context();
-  context.addBuiltins();
-  context.execute(DEMO);
+  // auto context = kette::Context();
+  // context.addBuiltins();
+  // context.execute(DEMO);
 
   // auto mem = kette::mem::ExecutableMemory { 1300 }; 
   // mem.push(0xC3);
@@ -19,6 +19,6 @@ auto main() -> i32 {
   // fn();
   // std::cout << mem.to_string() << std::endl;
 
-  // kette::oo::tests::all();
+  kette::oo::tests::all();
   return 0;
 }

@@ -1,6 +1,31 @@
 #include <kette/symbols.hpp>
 
 namespace kette {
+  auto StringPool::get_next_id() -> cell {
+    auto id = next_id;
+    next_id++;
+    return id;
+  }
+
+  auto StringPool::insert_string(const std::string& str) -> cell {
+    auto id = get_next_id();
+    strings[str] = id;
+    return id;    
+  }
+
+  auto StringPool::get_string(cell id) const -> std::string {
+    for (const auto& kv : strings) {
+      if(kv.second == id) return kv.first;
+    }
+    return "";
+  }
+
+  auto StringPool::string(const std::string& str) -> cell {
+    if (strings.contains(str)) return strings[str];
+    return insert_string(str);
+  }
+
+
   auto SymbolTable::getNextId() -> SymbolId {
     auto id = nextId;
     nextId++;

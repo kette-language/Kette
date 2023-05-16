@@ -4,9 +4,6 @@
 #include <kette/objects.hpp>
 
 
-namespace kette::oo {
-
-  auto builtin_quotation_prototype() -> Object {
-
-  }
+namespace kette::builtins {
+  auto print_num(cell num) -> void;
 }
